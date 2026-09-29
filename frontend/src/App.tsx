@@ -1,8 +1,33 @@
+import { useState } from 'react'
 import './App.css'
+import { Header } from './components/Header'
+import type { Pagina } from './components/Header'
 import { ListaTecnicos } from './pages/ListaTecnicos'
+import { CadastroTecnico } from './pages/CadastroTecnico'
+import { Especialidades } from './pages/Especialidades'
+import { PerfilTecnico } from './pages/PerfilTecnico'
 
 function App() {
-  return <ListaTecnicos />
+  const [pagina, setPagina] = useState<Pagina>('tecnicos')
+
+  return (
+    <>
+      <Header
+        paginaAtual={pagina}
+        aoNavegar={setPagina}
+      />
+
+      {pagina === 'tecnicos' && <ListaTecnicos />}
+
+      {pagina === 'cadastro-tecnico' && (
+        <CadastroTecnico />
+      )}
+
+      {pagina === 'especialidades' && <Especialidades />}
+
+      {pagina === 'perfil-tecnico' && <PerfilTecnico />}
+    </>
+  )
 }
 
 export default App

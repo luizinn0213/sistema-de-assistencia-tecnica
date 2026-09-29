@@ -8,36 +8,61 @@ export function ListaTecnicos() {
   const [erro, setErro] = useState('')
 
   useEffect(() => {
-    async function carregarTecnicos() {
-      try {
-        const dados = await listarTecnicos()
-        setTecnicos(dados)
-      } catch {
-        setErro('Não foi possível carregar os técnicos.')
-      } finally {
-        setCarregando(false)
-      }
-    }
+    let componenteAtivo = true
 
-    carregarTecnicos()
+    listarTecnicos()
+      .then((dados) => {
+        if (componenteAtivo) {
+          setTecnicos(dados)
+        }
+      })
+      .catch(() => {
+        if (componenteAtivo) {
+          setErro('Não foi possível carregar os técnicos.')
+        }
+      })
+      .finally(() => {
+        if (componenteAtivo) {
+          setCarregando(false)
+        }
+      })
+
+    return () => {
+      componenteAtivo = false
+    }
   }, [])
 
   if (carregando) {
-    return <p>Carregando técnicos...</p>
+    return (
+      <main className="pagina-conteudo">
+        <p>Carregando técnicos...</p>
+      </main>
+    )
   }
 
   if (erro) {
-    return <p>{erro}</p>
+    return (
+      <main className="pagina-conteudo">
+        <p className="mensagem erro">{erro}</p>
+      </main>
+    )
   }
 
   return (
     <main className="pagina-tecnicos">
       <header className="cabecalho-pagina">
         <div>
-          <span className="subtitulo">Profissionais cadastrados</span>
-          <h1>Encontre assistência técnica</h1>
+          <span className="subtitulo">
+            Assistência técnica confiável
+          </span>
+
+          <h1>
+            Encontre o técnico certo para seu equipamento
+          </h1>
+
           <p>
-            Consulte profissionais, especialidades e disponibilidade.
+            Consulte profissionais, especialidades e
+            disponibilidade.
           </p>
         </div>
       </header>
@@ -48,9 +73,14 @@ export function ListaTecnicos() {
         )}
 
         {tecnicos.map((tecnico) => (
-          <article className="cartao-tecnico" key={tecnico.id}>
+          <article
+            className="cartao-tecnico"
+            key={tecnico.id}
+          >
             <div className="avatar">
-              {tecnico.nomeExibicao.charAt(0).toUpperCase()}
+              {tecnico.nomeExibicao
+                .charAt(0)
+                .toUpperCase()}
             </div>
 
             <div className="dados-tecnico">
@@ -73,23 +103,28 @@ export function ListaTecnicos() {
               <p>{tecnico.descricaoProfissional}</p>
 
               <p className="localizacao">
-                {tecnico.cidadeAtendimento} - {tecnico.estadoAtendimento}
+                {tecnico.cidadeAtendimento} -{' '}
+                {tecnico.estadoAtendimento}
               </p>
 
               <div className="especialidades">
                 {tecnico.especialidades.length === 0 && (
-                  <span>Sem especialidades cadastradas</span>
+                  <span>
+                    Sem especialidades cadastradas
+                  </span>
                 )}
 
-                {tecnico.especialidades.map((especialidade) => (
-                  <span
-                    className="etiqueta"
-                    key={especialidade.especialidadeId}
-                  >
-                    {especialidade.nome} ·{' '}
-                    {especialidade.nivelExperiencia}
-                  </span>
-                ))}
+                {tecnico.especialidades.map(
+                  (especialidade) => (
+                    <span
+                      className="etiqueta"
+                      key={especialidade.especialidadeId}
+                    >
+                      {especialidade.nome} ·{' '}
+                      {especialidade.nivelExperiencia}
+                    </span>
+                  )
+                )}
               </div>
             </div>
           </article>

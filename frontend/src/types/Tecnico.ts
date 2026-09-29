@@ -17,3 +17,17 @@ export interface Tecnico {
   dataCadastro: string
   especialidades: EspecialidadeTecnico[]
 }
+
+export interface CriarTecnico {
+  usuarioId: number
+  nomeExibicao: string
+  descricaoProfissional: string
+  cidadeAtendimento: string
+  estadoAtendimento: string
+}
+
+export interface AdicionarEspecialidadeTecnico {
+  especialidadeId: number
+  nivelExperiencia: number
+  anosExperiencia: number
+}
