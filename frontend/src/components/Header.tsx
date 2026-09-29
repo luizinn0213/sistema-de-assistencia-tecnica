@@ -20,7 +20,7 @@ export function Header({
         onClick={() => aoNavegar('tecnicos')}
       >
         <span>NG</span>
-        OS NARGGETS ASSISTÊNCIA TÉCNICA
+        OS NARGGETS
       </button>
 
       <nav className="menu-principal">
