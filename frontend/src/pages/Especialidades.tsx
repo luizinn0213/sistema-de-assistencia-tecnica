@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import {
+  alterarStatusEspecialidade,
+  atualizarEspecialidade,
   cadastrarEspecialidade,
   listarEspecialidades
 } from '../services/especialidadesApi'
 import type { Especialidade } from '../types/Especialidade'
+
+function ordenarEspecialidades(
+  especialidades: Especialidade[]
+) {
+  return [...especialidades].sort((a, b) =>
+    a.nome.localeCompare(b.nome, 'pt-BR')
+  )
+}
 
 export function Especialidades() {
   const [especialidades, setEspecialidades] =
@@ -12,25 +22,67 @@ export function Especialidades() {
 
   const [nome, setNome] = useState('')
   const [descricao, setDescricao] = useState('')
+  const [editandoId, setEditandoId] =
+    useState<number | null>(null)
+
   const [carregando, setCarregando] = useState(true)
   const [enviando, setEnviando] = useState(false)
+  const [alterandoStatusId, setAlterandoStatusId] =
+    useState<number | null>(null)
+
   const [mensagem, setMensagem] = useState('')
   const [erro, setErro] = useState('')
 
   useEffect(() => {
-    async function carregar() {
-      try {
-        const dados = await listarEspecialidades()
-        setEspecialidades(dados)
-      } catch {
-        setErro('Não foi possível carregar as especialidades.')
-      } finally {
-        setCarregando(false)
-      }
-    }
+    let componenteAtivo = true
 
-    carregar()
+    listarEspecialidades()
+      .then((dados) => {
+        if (componenteAtivo) {
+          setEspecialidades(
+            ordenarEspecialidades(dados)
+          )
+        }
+      })
+      .catch(() => {
+        if (componenteAtivo) {
+          setErro(
+            'Não foi possível carregar as especialidades.'
+          )
+        }
+      })
+      .finally(() => {
+        if (componenteAtivo) {
+          setCarregando(false)
+        }
+      })
+
+    return () => {
+      componenteAtivo = false
+    }
   }, [])
+
+  function limparFormulario() {
+    setNome('')
+    setDescricao('')
+    setEditandoId(null)
+  }
+
+  function iniciarEdicao(
+    especialidade: Especialidade
+  ) {
+    setEditandoId(especialidade.id)
+    setNome(especialidade.nome)
+    setDescricao(especialidade.descricao)
+    setMensagem('')
+    setErro('')
+  }
+
+  function cancelarEdicao() {
+    limparFormulario()
+    setMensagem('')
+    setErro('')
+  }
 
   async function enviarFormulario(
     evento: FormEvent<HTMLFormElement>
@@ -42,30 +94,96 @@ export function Especialidades() {
     setErro('')
 
     try {
-      const novaEspecialidade =
-        await cadastrarEspecialidade({
-          nome,
-          descricao
-        })
+      if (editandoId !== null) {
+        const especialidadeAtualizada =
+          await atualizarEspecialidade(
+            editandoId,
+            { nome, descricao }
+          )
 
-      setEspecialidades([
-        ...especialidades,
-        novaEspecialidade
-      ])
+        setEspecialidades((atuais) =>
+          ordenarEspecialidades(
+            atuais.map((especialidade) =>
+              especialidade.id === editandoId
+                ? especialidadeAtualizada
+                : especialidade
+            )
+          )
+        )
 
-      setNome('')
-      setDescricao('')
-      setMensagem('Especialidade cadastrada com sucesso.')
+        setMensagem(
+          'Especialidade atualizada com sucesso.'
+        )
+      } else {
+        const novaEspecialidade =
+          await cadastrarEspecialidade({
+            nome,
+            descricao
+          })
+
+        setEspecialidades((atuais) =>
+          ordenarEspecialidades([
+            ...atuais,
+            novaEspecialidade
+          ])
+        )
+
+        setMensagem(
+          'Especialidade cadastrada com sucesso.'
+        )
+      }
+
+      limparFormulario()
     } catch (erroRecebido) {
       if (erroRecebido instanceof Error) {
         setErro(erroRecebido.message)
       } else {
         setErro(
-          'Não foi possível cadastrar a especialidade.'
+          'Não foi possível salvar a especialidade.'
         )
       }
     } finally {
       setEnviando(false)
+    }
+  }
+
+  async function alternarStatus(
+    especialidade: Especialidade
+  ) {
+    setAlterandoStatusId(especialidade.id)
+    setMensagem('')
+    setErro('')
+
+    try {
+      const especialidadeAtualizada =
+        await alterarStatusEspecialidade(
+          especialidade.id,
+          !especialidade.ativa
+        )
+
+      setEspecialidades((atuais) =>
+        atuais.map((item) =>
+          item.id === especialidade.id
+            ? especialidadeAtualizada
+            : item
+        )
+      )
+
+      setMensagem(
+        especialidadeAtualizada.ativa
+          ? 'Especialidade ativada com sucesso.'
+          : 'Especialidade inativada com sucesso.'
+      )
+    } catch (erroRecebido) {
+      if (erroRecebido instanceof Error) {
+        setErro(erroRecebido.message)
+      } else {
+        setErro(
+          'Não foi possível alterar o status.'
+        )
+      }
+    } finally {
+      setAlterandoStatusId(null)
     }
   }
 
@@ -79,7 +197,8 @@ export function Especialidades() {
         <h1>Especialidades</h1>
 
         <p>
-          Cadastre e consulte as especialidades da plataforma.
+          Cadastre e gerencie as especialidades da
+          plataforma.
         </p>
       </div>
 
@@ -88,7 +207,11 @@ export function Especialidades() {
           className="formulario painel-formulario"
           onSubmit={enviarFormulario}
         >
-          <h2>Nova especialidade</h2>
+          <h2>
+            {editandoId === null
+              ? 'Nova especialidade'
+              : 'Editar especialidade'}
+          </h2>
 
           <label>
             Nome
@@ -124,15 +247,29 @@ export function Especialidades() {
             <p className="mensagem erro">{erro}</p>
           )}
 
-          <button
-            className="botao-principal"
-            type="submit"
-            disabled={enviando}
-          >
-            {enviando
-              ? 'Cadastrando...'
-              : 'Cadastrar especialidade'}
-          </button>
+          <div className="acoes-formulario">
+            <button
+              className="botao-principal"
+              type="submit"
+              disabled={enviando}
+            >
+              {enviando
+                ? 'Salvando...'
+                : editandoId === null
+                  ? 'Cadastrar especialidade'
+                  : 'Salvar alterações'}
+            </button>
+
+            {editandoId !== null && (
+              <button
+                className="botao-secundario"
+                type="button"
+                onClick={cancelarEdicao}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
         </form>
 
         <section className="lista-especialidades">
@@ -150,22 +287,59 @@ export function Especialidades() {
               className="item-especialidade"
               key={especialidade.id}
             >
-              <div>
+              <div className="dados-especialidade">
                 <h3>{especialidade.nome}</h3>
                 <p>{especialidade.descricao}</p>
               </div>
 
-              <span
-                className={
-                  especialidade.ativa
-                    ? 'status-item ativo'
-                    : 'status-item inativo'
-                }
-              >
-                {especialidade.ativa
-                  ? 'Ativa'
-                  : 'Inativa'}
-              </span>
+              <div className="controle-especialidade">
+                <span
+                  className={
+                    especialidade.ativa
+                      ? 'status-item ativo'
+                      : 'status-item inativo'
+                  }
+                >
+                  {especialidade.ativa
+                    ? 'Ativa'
+                    : 'Inativa'}
+                </span>
+
+                <div className="acoes-item">
+                  <button
+                    className="botao-item"
+                    type="button"
+                    onClick={() =>
+                      iniciarEdicao(especialidade)
+                    }
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    className={
+                      especialidade.ativa
+                        ? 'botao-item perigo'
+                        : 'botao-item ativar'
+                    }
+                    type="button"
+                    disabled={
+                      alterandoStatusId ===
+                      especialidade.id
+                    }
+                    onClick={() =>
+                      alternarStatus(especialidade)
+                    }
+                  >
+                    {alterandoStatusId ===
+                    especialidade.id
+                      ? 'Alterando...'
+                      : especialidade.ativa
+                        ? 'Inativar'
+                        : 'Ativar'}
+                  </button>
+                </div>
+              </div>
             </article>
           ))}
         </section>

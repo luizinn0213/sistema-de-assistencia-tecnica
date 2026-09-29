@@ -652,7 +652,46 @@
 }
 
 .acoes-perfil {
-  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.acoes-perfil > button {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 16px;
+  justify-self: stretch;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.acoes-perfil .botao-item.perigo {
+  color: #b42318;
+  background: #fff;
+  border: 1px solid #fda29b;
+}
+
+.acoes-perfil .botao-item.ativar {
+  color: var(--success);
+  background: #fff;
+  border: 1px solid #86efac;
+}
+
+.acoes-perfil button:disabled {
+  color: #667085;
+  background: #f2f4f7;
+  border-color: #d0d5dd;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .acoes-perfil {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 650px) {
@@ -662,5 +701,221 @@
 
   .titulo-perfil {
     flex-direction: column;
+  }
+}
+
+.dados-especialidade {
+  flex: 1;
+}
+
+.controle-especialidade {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+}
+
+.acoes-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.botao-item {
+  padding: 7px 10px;
+  color: var(--brand-700);
+  background: white;
+  border: 1px solid #a5d8e5;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.botao-item:hover {
+  background: #ecfeff;
+}
+
+.botao-item.perigo {
+  color: #b42318;
+  border-color: #fda29b;
+}
+
+.botao-item.perigo:hover {
+  background: #fff1f0;
+}
+
+.botao-item.ativar {
+  color: var(--success);
+  border-color: #86efac;
+}
+
+.botao-item.ativar:hover {
+  background: var(--success-soft);
+}
+
+.botao-item:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 600px) {
+  .item-especialidade {
+    flex-direction: column;
+  }
+
+  .controle-especialidade {
+    justify-items: start;
+  }
+
+  .acoes-item {
+    justify-content: flex-start;
+  }
+}
+
+.lista-experiencias {
+  display: grid;
+  gap: 10px;
+}
+
+.item-experiencia {
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.resumo-experiencia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.formulario-experiencia {
+  display: grid;
+  grid-template-columns: 1fr 150px auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 14px;
+}
+
+.formulario-experiencia label {
+  display: grid;
+  gap: 6px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.formulario-experiencia input,
+.formulario-experiencia select {
+  width: 100%;
+  padding: 10px;
+  background: white;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+}
+
+@media (max-width: 700px) {
+  .resumo-experiencia {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .formulario-experiencia {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grupo-status-perfil {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.status-perfil.ativo {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.status-perfil.inativo {
+  color: #b42318;
+  background: #fee4e2;
+}
+
+.formulario-edicao-tecnico {
+  display: grid;
+  gap: 14px;
+  margin: 20px 0;
+  padding: 18px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.formulario-edicao-tecnico label {
+  display: grid;
+  gap: 6px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.formulario-edicao-tecnico input,
+.formulario-edicao-tecnico textarea {
+  width: 100%;
+  padding: 10px;
+  background: white;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+}
+
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  z-index: 1000;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 14px 22px;
+  border: 1px solid;
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(16, 42, 67, 0.2);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: none;
+  animation: toast-entrada-saida 3.6s ease forwards;
+}
+
+.toast.sucesso {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.toast.erro {
+  color: #991b1b;
+  background: #fff1f2;
+  border-color: #fda4af;
+}
+
+@keyframes toast-entrada-saida {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+
+  10%,
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -12px);
   }
 }

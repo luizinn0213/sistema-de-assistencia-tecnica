@@ -1,5 +1,7 @@
 import type {
   AdicionarEspecialidadeTecnico,
+  AtualizarExperienciaTecnico,
+  AtualizarTecnico,
   CriarTecnico,
   Tecnico
 } from '../types/Tecnico'
@@ -84,6 +86,101 @@ export async function alterarDisponibilidadeTecnico(
     throw new Error(
       mensagem ||
       'Não foi possível alterar a disponibilidade.'
+    )
+  }
+}
+
+export async function atualizarExperienciaTecnico(
+  tecnicoId: number,
+  especialidadeId: number,
+  dados: AtualizarExperienciaTecnico
+): Promise<void> {
+  const resposta = await fetch(
+    `${API_URL}/${tecnicoId}/especialidades/${especialidadeId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dados)
+    }
+  )
+
+  if (!resposta.ok) {
+    const mensagem = await resposta.text()
+
+    throw new Error(
+      mensagem ||
+      'Não foi possível atualizar a experiência.'
+    )
+  }
+}
+
+export async function atualizarTecnico(
+  tecnicoId: number,
+  dados: AtualizarTecnico
+): Promise<void> {
+  const resposta = await fetch(
+    `${API_URL}/${tecnicoId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dados)
+    }
+  )
+
+  if (!resposta.ok) {
+    const mensagem = await resposta.text()
+
+    throw new Error(
+      mensagem ||
+      'Não foi possível atualizar o técnico.'
+    )
+  }
+}
+
+export async function alterarStatusTecnico(
+  tecnicoId: number,
+  ativar: boolean
+): Promise<void> {
+  const acao = ativar ? 'ativar' : 'inativar'
+
+  const resposta = await fetch(
+    `${API_URL}/${tecnicoId}/${acao}`,
+    {
+      method: 'PATCH'
+    }
+  )
+
+  if (!resposta.ok) {
+    const mensagem = await resposta.text()
+
+    throw new Error(
+      mensagem ||
+      'Não foi possível alterar o status do técnico.'
+    )
+  }
+}
+
+export async function desvincularEspecialidadeTecnico(
+  tecnicoId: number,
+  especialidadeId: number
+): Promise<void> {
+  const resposta = await fetch(
+    `${API_URL}/${tecnicoId}/especialidades/${especialidadeId}`,
+    {
+      method: 'DELETE'
+    }
+  )
+
+  if (!resposta.ok) {
+    const mensagem = await resposta.text()
+
+    throw new Error(
+      mensagem ||
+      'Não foi possível remover a especialidade.'
     )
   }
 }

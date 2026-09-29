@@ -31,3 +31,15 @@ export interface AdicionarEspecialidadeTecnico {
   nivelExperiencia: number
   anosExperiencia: number
 }
+
+export interface AtualizarExperienciaTecnico {
+  nivelExperiencia: number
+  anosExperiencia: number
+}
+
+export interface AtualizarTecnico {
+  nomeExibicao: string
+  descricaoProfissional: string
+  cidadeAtendimento: string
+  estadoAtendimento: string
+}

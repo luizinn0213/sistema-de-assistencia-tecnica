@@ -198,5 +198,145 @@ public class TecnicosController : ControllerBase
             return BadRequest(erro.Message);
         }
     }
-    
+
+    [HttpPut("{tecnicoId:int}/especialidades/{especialidadeId:int}")]
+    public async Task<ActionResult> AtualizarExperiencia(
+        int tecnicoId,
+        int especialidadeId,
+        AtualizarExperienciaTecnicoDto dados)
+    {
+        var vinculo = await _context.TecnicosEspecialidades
+            .FirstOrDefaultAsync(te =>
+                te.TecnicoId == tecnicoId &&
+                te.EspecialidadeId == especialidadeId);
+
+        if (vinculo is null)
+        {
+            return NotFound(
+                "Especialidade não vinculada ao técnico.");
+        }
+
+        try
+        {
+            vinculo.AlterarNivel(dados.NivelExperiencia);
+            vinculo.AlterarAnosExperiencia(
+                dados.AnosExperiencia);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Mensagem = "Experiência atualizada.",
+                vinculo.TecnicoId,
+                vinculo.EspecialidadeId,
+                NivelExperiencia =
+                    vinculo.NivelExperiencia.ToString(),
+                vinculo.AnosExperiencia
+            });
+        }
+        catch (ArgumentException erro)
+        {
+            return BadRequest(erro.Message);
+        }
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult> Atualizar(
+        int id,
+        AtualizarTecnicoDto dados)
+    {
+        var tecnico = await _context.Tecnicos
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (tecnico is null)
+            return NotFound("Técnico não encontrado.");
+
+        try
+        {
+            tecnico.AtualizarDados(
+                dados.NomeExibicao,
+                dados.DescricaoProfissional,
+                dados.CidadeAtendimento,
+                dados.EstadoAtendimento);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(tecnico);
+        }
+        catch (ArgumentException erro)
+        {
+            return BadRequest(erro.Message);
+        }
+    }
+
+    [HttpPatch("{id:int}/ativar")]
+    public async Task<ActionResult> Ativar(int id)
+    {
+        var tecnico = await _context.Tecnicos
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (tecnico is null)
+            return NotFound("Técnico não encontrado.");
+
+        tecnico.Ativar();
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            Mensagem = "Técnico ativado.",
+            tecnico.Id,
+            tecnico.Ativo,
+            tecnico.Disponivel
+        });
+    }
+
+    [HttpPatch("{id:int}/inativar")]
+    public async Task<ActionResult> Inativar(int id)
+    {
+        var tecnico = await _context.Tecnicos
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (tecnico is null)
+            return NotFound("Técnico não encontrado.");
+
+        tecnico.Inativar();
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            Mensagem = "Técnico inativado.",
+            tecnico.Id,
+            tecnico.Ativo,
+            tecnico.Disponivel
+        });
+    }
+
+    [HttpDelete(
+        "{tecnicoId:int}/especialidades/{especialidadeId:int}")]
+    public async Task<ActionResult> DesvincularEspecialidade(
+        int tecnicoId,
+        int especialidadeId)
+    {
+        var tecnico = await _context.Tecnicos
+            .Include(t => t.TecnicoEspecialidades)
+            .FirstOrDefaultAsync(t => t.Id == tecnicoId);
+
+        if (tecnico is null)
+            return NotFound("Técnico não encontrado.");
+
+        try
+        {
+            tecnico.DesvincularEspecialidade(
+                especialidadeId);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+        catch (InvalidOperationException erro)
+        {
+            return BadRequest(erro.Message);
+        }
+    }
+
 }

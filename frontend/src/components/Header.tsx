@@ -19,8 +19,8 @@ export function Header({
         className="logo"
         onClick={() => aoNavegar('tecnicos')}
       >
-        <span>CT</span>
-        ConectaTech
+        <span>NG</span>
+        OS NARGGETS ASSISTÊNCIA TÉCNICA
       </button>
 
       <nav className="menu-principal">
