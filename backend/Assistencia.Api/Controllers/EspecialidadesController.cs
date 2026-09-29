@@ -64,4 +64,61 @@ public class EspecialidadesController : ControllerBase
             return BadRequest(erro.Message);
         }
     }
+
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult> Atualizar(
+        int id,
+        CriarEspecialidadeDto dados)
+    {
+        var especialidade = await _context.Especialidades
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (especialidade is null)
+            return NotFound("Especialidade não encontrada.");
+
+        try
+        {
+            especialidade.AtualizarDados(
+                dados.Nome,
+                dados.Descricao);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(especialidade);
+        }
+        catch (ArgumentException erro)
+        {
+            return BadRequest(erro.Message);
+        }
+    }
+
+    [HttpPatch("{id:int}/ativar")]
+    public async Task<ActionResult> Ativar(int id)
+    {
+        var especialidade = await _context.Especialidades
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (especialidade is null)
+            return NotFound("Especialidade não encontrada.");
+
+        especialidade.Ativar();
+        await _context.SaveChangesAsync();
+
+        return Ok(especialidade);
+    }
+
+    [HttpPatch("{id:int}/inativar")]
+    public async Task<ActionResult> Inativar(int id)
+    {
+        var especialidade = await _context.Especialidades
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (especialidade is null)
+            return NotFound("Especialidade não encontrada.");
+
+        especialidade.Inativar();
+        await _context.SaveChangesAsync();
+
+        return Ok(especialidade);
+    }
 }

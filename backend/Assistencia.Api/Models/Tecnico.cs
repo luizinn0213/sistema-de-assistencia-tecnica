@@ -1,7 +1,4 @@
 using Assistencia.Api.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Assistencia.Api.Models;
 
@@ -17,8 +14,8 @@ public class Tecnico
     public bool Disponivel { get; private set; }
     public DateTime DataCadastro { get; private set; }
 
-    public ICollection<TecnicoEspecialidade> TecnicoEspecialidades { get; private set; }
-        = new List<TecnicoEspecialidade>();
+    public ICollection<TecnicoEspecialidade> TecnicoEspecialidades
+        { get; private set; } = new List<TecnicoEspecialidade>();
 
     // Usado pelo Entity Framework
     public Tecnico()
@@ -33,26 +30,49 @@ public class Tecnico
         string estadoAtendimento)
     {
         if (usuarioId <= 0)
-            throw new ArgumentException("O usuário é obrigatório.");
-
-        if (string.IsNullOrWhiteSpace(nomeExibicao))
-            throw new ArgumentException("O nome do técnico é obrigatório.");
-
-        if (string.IsNullOrWhiteSpace(cidadeAtendimento))
-            throw new ArgumentException("A cidade de atendimento é obrigatória.");
-
-        if (string.IsNullOrWhiteSpace(estadoAtendimento))
-            throw new ArgumentException("O estado de atendimento é obrigatório.");
+            throw new ArgumentException(
+                "O usuário é obrigatório.");
 
         UsuarioId = usuarioId;
-        NomeExibicao = nomeExibicao;
-        DescricaoProfissional = descricaoProfissional;
-        CidadeAtendimento = cidadeAtendimento;
-        EstadoAtendimento = estadoAtendimento;
+
+        AtualizarDados(
+            nomeExibicao,
+            descricaoProfissional,
+            cidadeAtendimento,
+            estadoAtendimento);
 
         Ativo = true;
         Disponivel = false;
         DataCadastro = DateTime.UtcNow;
+    }
+
+    public void AtualizarDados(
+        string nomeExibicao,
+        string descricaoProfissional,
+        string cidadeAtendimento,
+        string estadoAtendimento)
+    {
+        if (string.IsNullOrWhiteSpace(nomeExibicao))
+            throw new ArgumentException(
+                "O nome do técnico é obrigatório.");
+
+        if (string.IsNullOrWhiteSpace(cidadeAtendimento))
+            throw new ArgumentException(
+                "A cidade de atendimento é obrigatória.");
+
+        if (string.IsNullOrWhiteSpace(estadoAtendimento))
+            throw new ArgumentException(
+                "O estado de atendimento é obrigatório.");
+
+        NomeExibicao = nomeExibicao.Trim();
+
+        DescricaoProfissional =
+            descricaoProfissional?.Trim() ?? string.Empty;
+
+        CidadeAtendimento = cidadeAtendimento.Trim();
+
+        EstadoAtendimento =
+            estadoAtendimento.Trim().ToUpperInvariant();
     }
 
     public void Ativar()
@@ -69,8 +89,10 @@ public class Tecnico
     public void AlterarDisponibilidade(bool disponivel)
     {
         if (!Ativo && disponivel)
+        {
             throw new InvalidOperationException(
                 "Um técnico inativo não pode ficar disponível.");
+        }
 
         Disponivel = disponivel;
     }
@@ -80,19 +102,22 @@ public class Tecnico
         NivelExperiencia nivel,
         int anosExperiencia)
     {
-        if (especialidade is null)
-            throw new ArgumentNullException(nameof(especialidade));
+        ArgumentNullException.ThrowIfNull(especialidade);
 
         if (!especialidade.Ativa)
+        {
             throw new InvalidOperationException(
                 "Não é possível adicionar uma especialidade inativa.");
+        }
 
         bool jaPossui = TecnicoEspecialidades.Any(
             te => te.EspecialidadeId == especialidade.Id);
 
         if (jaPossui)
+        {
             throw new InvalidOperationException(
                 "O técnico já possui essa especialidade.");
+        }
 
         var relacao = new TecnicoEspecialidade(
             this,
@@ -101,5 +126,21 @@ public class Tecnico
             anosExperiencia);
 
         TecnicoEspecialidades.Add(relacao);
+    }
+
+    public void DesvincularEspecialidade(
+        int especialidadeId)
+    {
+        var relacao = TecnicoEspecialidades
+            .FirstOrDefault(
+                te => te.EspecialidadeId == especialidadeId);
+
+        if (relacao is null)
+        {
+            throw new InvalidOperationException(
+                "Especialidade não vinculada ao técnico.");
+        }
+
+        TecnicoEspecialidades.Remove(relacao);
     }
 }
