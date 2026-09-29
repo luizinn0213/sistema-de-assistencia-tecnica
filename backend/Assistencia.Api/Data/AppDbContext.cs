@@ -5,18 +5,43 @@ namespace Assistencia.Api.Data;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
+    public AppDbContext(
+        DbContextOptions<AppDbContext> options)
         : base(options)
     {
     }
 
-    public DbSet<Tecnico> Tecnicos => Set<Tecnico>();
-    public DbSet<Especialidade> Especialidades => Set<Especialidade>();
-    public DbSet<TecnicoEspecialidade> TecnicosEspecialidades
+    public DbSet<Tecnico> Tecnicos
+        => Set<Tecnico>();
+
+    public DbSet<Especialidade> Especialidades
+        => Set<Especialidade>();
+
+    public DbSet<TecnicoEspecialidade>
+        TecnicosEspecialidades
         => Set<TecnicoEspecialidade>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public DbSet<Orcamento> Orcamentos
+        => Set<Orcamento>();
+
+    public DbSet<ItemOrcamento> ItensOrcamento
+        => Set<ItemOrcamento>();
+
+    public DbSet<HistoricoOrcamento>
+        HistoricosOrcamento
+        => Set<HistoricoOrcamento>();
+
+    public DbSet<Pagamento> Pagamentos
+        => Set<Pagamento>();
+
+    public DbSet<Comissao> Comissoes
+        => Set<Comissao>();
+
+    protected override void OnModelCreating(
+        ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<TecnicoEspecialidade>()
             .HasKey(te => new
             {
@@ -33,5 +58,31 @@ public class AppDbContext : DbContext
             .HasOne(te => te.Especialidade)
             .WithMany(e => e.TecnicoEspecialidades)
             .HasForeignKey(te => te.EspecialidadeId);
+
+        modelBuilder.Entity<Orcamento>()
+            .HasMany(o => o.Itens)
+            .WithOne(i => i.Orcamento)
+            .HasForeignKey(i => i.OrcamentoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Orcamento>()
+            .HasMany(o => o.Historico)
+            .WithOne(h => h.Orcamento)
+            .HasForeignKey(h => h.OrcamentoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Orcamento>()
+            .HasOne(o => o.Pagamento)
+            .WithOne(p => p.Orcamento)
+            .HasForeignKey<Pagamento>(
+                p => p.OrcamentoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Orcamento>()
+            .HasOne(o => o.Comissao)
+            .WithOne(c => c.Orcamento)
+            .HasForeignKey<Comissao>(
+                c => c.OrcamentoId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
