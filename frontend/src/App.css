@@ -919,3 +919,667 @@
     transform: translate(-50%, -12px);
   }
 }
+
+/* =========================================================
+   CLIENTES, LOGIN E EQUIPAMENTOS
+   ========================================================= */
+
+.pagina-cadastro-cliente,
+.pagina-equipamentos {
+    width: min(1080px, calc(100% - 40px));
+    margin: 36px auto 80px;
+}
+
+.pagina-cadastro-cliente .cabecalho-formulario,
+.pagina-equipamentos .cabecalho-formulario {
+    padding: 36px 40px;
+    border-radius: 22px;
+    background:
+        radial-gradient(
+            circle at 90% 20%,
+            rgba(48, 190, 216, 0.25),
+            transparent 28%
+        ),
+        linear-gradient(135deg, #0c2d47, #125873);
+    color: #ffffff;
+    box-shadow: 0 14px 38px rgba(12, 45, 71, 0.16);
+}
+
+.pagina-cadastro-cliente .cabecalho-formulario h1,
+.pagina-equipamentos .cabecalho-formulario h1 {
+    margin: 8px 0;
+    color: #ffffff;
+    font-size: clamp(2rem, 4vw, 2.65rem);
+}
+
+.pagina-cadastro-cliente .cabecalho-formulario p,
+.pagina-equipamentos .cabecalho-formulario p {
+    margin: 0;
+    color: #dcebf1;
+}
+
+.pagina-cadastro-cliente .subtitulo-formulario,
+.pagina-equipamentos .subtitulo-formulario {
+    color: #67dcf0;
+}
+
+/* Cadastro do cliente */
+
+.formulario-cliente {
+    display: grid;
+    gap: 22px;
+    margin-top: 24px;
+}
+
+.secao-formulario {
+    padding: 28px;
+    border: 1px solid #dce4eb;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(17, 46, 68, 0.07);
+}
+
+.titulo-secao {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 24px;
+}
+
+.titulo-secao > span {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #1083a0;
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.titulo-secao h2 {
+    margin: 0 0 3px;
+    color: #132d40;
+    font-size: 1.2rem;
+}
+
+.titulo-secao p {
+    margin: 0;
+    color: #71808d;
+    font-size: 0.9rem;
+}
+
+.grade-formulario {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.grade-formulario label,
+.formulario-login label,
+.formulario-equipamento label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #273c4d;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.grade-formulario .campo-largo {
+    grid-column: 1 / -1;
+}
+
+.grade-formulario input,
+.formulario-login input,
+.formulario-equipamento input {
+    width: 100%;
+    height: 46px;
+    padding: 0 13px;
+    border: 1px solid #cbd6df;
+    border-radius: 10px;
+    background: #fcfdfe;
+    color: #172b3c;
+    font: inherit;
+    outline: none;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s,
+        background 0.2s;
+}
+
+.grade-formulario input:focus,
+.formulario-login input:focus,
+.formulario-equipamento input:focus {
+    border-color: #12829f;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(18, 130, 159, 0.13);
+}
+
+.acoes-formulario {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.acoes-formulario .botao-principal {
+    min-width: 180px;
+}
+
+/* Login */
+
+.pagina-login {
+    min-height: calc(100vh - 76px);
+    display: grid;
+    place-items: center;
+    padding: 42px 20px;
+    background:
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(23, 167, 195, 0.14),
+            transparent 28%
+        ),
+        #f3f7fb;
+}
+
+.cartao-login {
+    width: min(460px, 100%);
+    overflow: hidden;
+    border: 1px solid #dae3ea;
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 20px 55px rgba(13, 44, 67, 0.14);
+}
+
+.cabecalho-login {
+    padding: 34px 34px 28px;
+    background: linear-gradient(135deg, #0c2d47, #125873);
+    color: #ffffff;
+}
+
+.cabecalho-login h1 {
+    margin: 8px 0;
+    color: #ffffff;
+    font-size: 2rem;
+}
+
+.cabecalho-login p {
+    margin: 0;
+    color: #dcebf1;
+    line-height: 1.55;
+}
+
+.cabecalho-login .subtitulo-formulario {
+    color: #67dcf0;
+}
+
+.formulario-login {
+    display: grid;
+    gap: 18px;
+    padding: 30px 34px 34px;
+}
+
+.formulario-login .botao-principal {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 4px;
+}
+
+.sucesso-login {
+    padding: 42px;
+    color: #173448;
+    text-align: center;
+}
+
+.sucesso-login::before {
+    display: grid;
+    width: 62px;
+    height: 62px;
+    place-items: center;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    content: "✓";
+    background: #def7e7;
+    color: #18743d;
+    font-size: 1.8rem;
+    font-weight: 900;
+}
+
+.sucesso-login h1 {
+    margin: 8px 0;
+    color: #102a3e;
+}
+
+/* Equipamentos */
+
+.painel-equipamentos {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) 1fr;
+    align-items: start;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.formulario-equipamento {
+    position: sticky;
+    top: 94px;
+    display: grid;
+    gap: 17px;
+    padding: 26px;
+    border: 1px solid #dce4eb;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(17, 46, 68, 0.07);
+}
+
+.formulario-equipamento h2 {
+    margin: 0 0 4px;
+    color: #132d40;
+    font-size: 1.25rem;
+}
+
+.acoes-equipamento {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.lista-equipamentos {
+    min-width: 0;
+    padding: 26px;
+    border: 1px solid #dce4eb;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(17, 46, 68, 0.07);
+}
+
+.titulo-lista-equipamentos {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.titulo-lista-equipamentos span {
+    color: #1083a0;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.titulo-lista-equipamentos h2 {
+    margin: 4px 0 0;
+    color: #132d40;
+    font-size: 1.25rem;
+}
+
+.titulo-lista-equipamentos > strong {
+    min-width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #e5f6fa;
+    color: #0b748e;
+}
+
+.cartao-equipamento {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 17px;
+    border: 1px solid #e0e7ed;
+    border-radius: 14px;
+    background: #fbfcfd;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s,
+        transform 0.2s;
+}
+
+.cartao-equipamento + .cartao-equipamento {
+    margin-top: 12px;
+}
+
+.cartao-equipamento:hover {
+    transform: translateY(-2px);
+    border-color: #acd2dc;
+    box-shadow: 0 9px 22px rgba(17, 46, 68, 0.08);
+}
+
+.icone-equipamento {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #16a4c1, #08728e);
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.dados-equipamento {
+    flex: 1;
+    min-width: 0;
+}
+
+.dados-equipamento > span {
+    color: #1083a0;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.dados-equipamento h3 {
+    margin: 3px 0;
+    overflow: hidden;
+    color: #172f41;
+    font-size: 1rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dados-equipamento p {
+    margin: 0;
+    color: #74828e;
+    font-size: 0.85rem;
+}
+
+.botoes-equipamento {
+    display: flex;
+    gap: 8px;
+}
+
+.botoes-equipamento button {
+    padding: 8px 11px;
+    border: 1px solid #ccd7df;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #274154;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.botoes-equipamento button:hover {
+    border-color: #1083a0;
+    color: #08728e;
+}
+
+.botoes-equipamento .acao-perigosa {
+    border-color: #f0c7c7;
+    color: #ae3030;
+}
+
+.botoes-equipamento .acao-perigosa:hover {
+    border-color: #df7777;
+    background: #fff3f3;
+    color: #922222;
+}
+
+/* Mensagens */
+
+.pagina-cadastro-cliente .mensagem,
+.pagina-equipamentos .mensagem,
+.pagina-login .mensagem {
+    padding: 14px 16px;
+    border-radius: 11px;
+    font-weight: 600;
+}
+
+.pagina-cadastro-cliente .mensagem.erro,
+.pagina-equipamentos .mensagem.erro,
+.pagina-login .mensagem.erro {
+    border: 1px solid #efb7b7;
+    background: #fff1f1;
+    color: #a72525;
+}
+
+.pagina-cadastro-cliente .mensagem.sucesso,
+.pagina-equipamentos .mensagem.sucesso {
+    border: 1px solid #a9dfba;
+    background: #ebf9ef;
+    color: #176b36;
+}
+
+.pagina-equipamentos > .mensagem {
+    margin-top: 20px;
+}
+
+.pagina-equipamentos .estado-vazio {
+    margin: 0;
+    padding: 36px 20px;
+    border: 1px dashed #c3ced7;
+    border-radius: 13px;
+    background: #f8fafb;
+    color: #70808c;
+    text-align: center;
+}
+
+/* Responsividade */
+
+@media (max-width: 1100px) {
+    .barra-superior {
+        gap: 12px;
+    }
+
+    .menu-principal {
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding-bottom: 3px;
+    }
+
+    .menu-principal button {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 800px) {
+    .painel-equipamentos {
+        grid-template-columns: 1fr;
+    }
+
+    .formulario-equipamento {
+        position: static;
+    }
+}
+
+@media (max-width: 650px) {
+    .pagina-cadastro-cliente,
+    .pagina-equipamentos {
+        width: calc(100% - 24px);
+        margin-top: 18px;
+    }
+
+    .pagina-cadastro-cliente .cabecalho-formulario,
+    .pagina-equipamentos .cabecalho-formulario {
+        padding: 28px 22px;
+    }
+
+    .secao-formulario,
+    .lista-equipamentos,
+    .formulario-equipamento {
+        padding: 20px;
+    }
+
+    .grade-formulario {
+        grid-template-columns: 1fr;
+    }
+
+    .grade-formulario .campo-largo {
+        grid-column: auto;
+    }
+
+    .cartao-equipamento {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .dados-equipamento {
+        width: calc(100% - 70px);
+    }
+
+    .botoes-equipamento {
+        width: 100%;
+    }
+
+    .botoes-equipamento button {
+        flex: 1;
+    }
+
+    .acoes-formulario .botao-principal {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   PERFIL DO CLIENTE
+   ========================================================= */
+
+.pagina-perfil-cliente {
+    width: min(1080px, calc(100% - 40px));
+    margin: 36px auto 80px;
+}
+
+.pagina-perfil-cliente .cabecalho-formulario {
+    padding: 36px 40px;
+    border-radius: 22px;
+    background:
+        radial-gradient(
+            circle at 90% 20%,
+            rgba(48, 190, 216, 0.25),
+            transparent 28%
+        ),
+        linear-gradient(135deg, #0c2d47, #125873);
+    color: #ffffff;
+    box-shadow: 0 14px 38px rgba(12, 45, 71, 0.16);
+}
+
+.pagina-perfil-cliente .cabecalho-formulario h1 {
+    margin: 8px 0;
+    color: #ffffff;
+    font-size: clamp(2rem, 4vw, 2.65rem);
+}
+
+.pagina-perfil-cliente .cabecalho-formulario p {
+    margin: 0;
+    color: #dcebf1;
+}
+
+.pagina-perfil-cliente .subtitulo-formulario {
+    color: #67dcf0;
+}
+
+.formulario-perfil-cliente {
+    display: grid;
+    gap: 22px;
+    margin-top: 24px;
+}
+
+.formulario-perfil-cliente input:disabled {
+    border-color: #dce3e8;
+    background: #eef2f5;
+    color: #75838e;
+    cursor: not-allowed;
+}
+
+.formulario-perfil-cliente label small {
+    color: #87939d;
+    font-size: 0.76rem;
+    font-weight: 500;
+}
+
+.formulario-perfil-cliente .mensagem {
+    padding: 14px 16px;
+    border-radius: 11px;
+    font-weight: 600;
+}
+
+.formulario-perfil-cliente .mensagem.erro {
+    border: 1px solid #efb7b7;
+    background: #fff1f1;
+    color: #a72525;
+}
+
+.formulario-perfil-cliente .mensagem.sucesso {
+    border: 1px solid #a9dfba;
+    background: #ebf9ef;
+    color: #176b36;
+}
+
+.formulario-perfil-cliente .acoes-formulario {
+    padding: 20px 24px;
+    border: 1px solid #dce4eb;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(17, 46, 68, 0.06);
+}
+
+.botao-perfil.ativo {
+    outline: 3px solid rgba(103, 220, 240, 0.35);
+    background: #1aa2bf;
+}
+
+@media (max-width: 650px) {
+    .pagina-perfil-cliente {
+        width: calc(100% - 24px);
+        margin-top: 18px;
+    }
+
+    .pagina-perfil-cliente .cabecalho-formulario {
+        padding: 28px 22px;
+    }
+
+    .formulario-perfil-cliente .acoes-formulario {
+        padding: 16px;
+    }
+
+    .formulario-perfil-cliente
+        .acoes-formulario
+        .botao-principal {
+        width: 100%;
+    }
+}
+
+.acoes-perfil-cliente {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.botao-sair {
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid #efb2b2;
+    border-radius: 10px;
+    background: #fff5f5;
+    color: #a52525;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    transition:
+        border-color 0.2s,
+        background 0.2s;
+}
+
+.botao-sair:hover {
+    border-color: #dc7777;
+    background: #ffeaea;
+}
+
+@media (max-width: 650px) {
+    .acoes-perfil-cliente {
+        flex-direction: column-reverse;
+    }
+
+    .acoes-perfil-cliente .botao-sair,
+    .acoes-perfil-cliente .botao-principal {
+        width: 100%;
+    }
+}
