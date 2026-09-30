@@ -2,6 +2,8 @@ import { obterSessao } from '../services/authApi'
 
 export type Pagina =
     | 'tecnicos'
+    | 'matching'
+    | 'solicitacoes-tecnico'
     | 'cadastro-tecnico'
     | 'perfil-tecnico'
     | 'especialidades'
@@ -9,6 +11,8 @@ export type Pagina =
     | 'equipamentos'
     | 'login'
     | 'perfil-cliente'
+    | 'nova-solicitacao'
+    | 'minhas-solicitacoes'
 
 interface HeaderProps {
     paginaAtual: Pagina
@@ -60,11 +64,35 @@ export function Header({
                             : ''
                     }
                     type="button"
-                    onClick={() =>
-                        aoNavegar('tecnicos')
-                    }
+                    onClick={() => aoNavegar('tecnicos')}
                 >
                     Buscar técnicos
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'matching'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() => aoNavegar('matching')}
+                >
+                    Escolher técnico
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'solicitacoes-tecnico'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('solicitacoes-tecnico')
+                    }
+                >
+                    Solicitações
                 </button>
 
                 <button
@@ -135,6 +163,34 @@ export function Header({
                     }
                 >
                     Meus equipamentos
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'nova-solicitacao'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('nova-solicitacao')
+                    }
+                >
+                    Nova solicitação
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'minhas-solicitacoes'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('minhas-solicitacoes')
+                    }
+                >
+                    Minhas solicitações
                 </button>
             </nav>
 

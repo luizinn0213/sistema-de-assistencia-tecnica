@@ -3,6 +3,7 @@ using System;
 using Assistencia.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Assistencia.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260930023747_AddHistoricoSelecaoTecnico")]
+    partial class AddHistoricoSelecaoTecnico
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
@@ -200,49 +203,6 @@ namespace Assistencia.Api.Migrations
                     b.ToTable("SelecoesTecnicos");
                 });
 
-            modelBuilder.Entity("Assistencia.Api.Models.Solicitacao", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ClienteId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DescricaoProblema")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("EquipamentoId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("EspecialidadeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Numero")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClienteId");
-
-                    b.HasIndex("EquipamentoId");
-
-                    b.HasIndex("EspecialidadeId");
-
-                    b.HasIndex("Numero")
-                        .IsUnique();
-
-                    b.ToTable("Solicitacoes");
-                });
-
             modelBuilder.Entity("Assistencia.Api.Models.Tecnico", b =>
                 {
                     b.Property<int>("Id")
@@ -391,12 +351,6 @@ namespace Assistencia.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Assistencia.Api.Models.Solicitacao", "Solicitacao")
-                        .WithMany()
-                        .HasForeignKey("SolicitacaoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Assistencia.Api.Models.Tecnico", "Tecnico")
                         .WithMany()
                         .HasForeignKey("TecnicoId")
@@ -405,36 +359,7 @@ namespace Assistencia.Api.Migrations
 
                     b.Navigation("Especialidade");
 
-                    b.Navigation("Solicitacao");
-
                     b.Navigation("Tecnico");
-                });
-
-            modelBuilder.Entity("Assistencia.Api.Models.Solicitacao", b =>
-                {
-                    b.HasOne("Assistencia.Api.Models.Cliente", "Cliente")
-                        .WithMany()
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Assistencia.Api.Models.Equipamento", "Equipamento")
-                        .WithMany()
-                        .HasForeignKey("EquipamentoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Assistencia.Api.Models.Especialidade", "Especialidade")
-                        .WithMany()
-                        .HasForeignKey("EspecialidadeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Cliente");
-
-                    b.Navigation("Equipamento");
-
-                    b.Navigation("Especialidade");
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.TecnicoEspecialidade", b =>
