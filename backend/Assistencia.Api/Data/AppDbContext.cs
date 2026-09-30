@@ -33,6 +33,9 @@ public class AppDbContext : DbContext
     public DbSet<Equipamento> Equipamentos
         => Set<Equipamento>();
 
+    public DbSet<Solicitacao> Solicitacoes
+        => Set<Solicitacao>();
+
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
@@ -84,5 +87,29 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Equipamento>()
             .HasIndex(e => e.NumeroSerie)
             .IsUnique();
+
+        modelBuilder.Entity<Solicitacao>()
+            .HasIndex(s => s.Numero)
+            .IsUnique();
+
+        // Restrict: excluir cliente, equipamento ou especialidade
+        // não apaga as solicitações já registradas.
+        modelBuilder.Entity<Solicitacao>()
+            .HasOne(s => s.Cliente)
+            .WithMany()
+            .HasForeignKey(s => s.ClienteId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Solicitacao>()
+            .HasOne(s => s.Equipamento)
+            .WithMany()
+            .HasForeignKey(s => s.EquipamentoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Solicitacao>()
+            .HasOne(s => s.Especialidade)
+            .WithMany()
+            .HasForeignKey(s => s.EspecialidadeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
