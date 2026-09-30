@@ -1649,3 +1649,15 @@
     font-size: 0.82rem;
     font-weight: 800;
 }
+
+.lista-solicitacoes {
+    margin-top: 24px;
+}
+
+.lista-solicitacoes .dados-equipamento p + p {
+    margin-top: 4px;
+}
+
+.lista-solicitacoes .status-solicitacao {
+    flex: 0 0 auto;
+}

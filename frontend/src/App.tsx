@@ -11,6 +11,7 @@ import { Equipamentos } from './pages/Equipamentos'
 import { Login } from './pages/Login'
 import { PerfilCliente } from './pages/PerfilCliente'
 import { NovaSolicitacao } from './pages/NovaSolicitacao'
+import { MinhasSolicitacoes } from './pages/MinhasSolicitacoes'
 
 function App() {
     const [pagina, setPagina] =
@@ -57,6 +58,10 @@ function App() {
 
             {pagina === 'nova-solicitacao' && (
                 <NovaSolicitacao />
+            )}
+
+            {pagina === 'minhas-solicitacoes' && (
+                <MinhasSolicitacoes />
             )}
         </>
     )
