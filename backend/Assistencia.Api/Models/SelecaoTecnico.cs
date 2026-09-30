@@ -7,6 +7,8 @@ public class SelecaoTecnico
     public int Id { get; private set; }
     public int SolicitacaoId { get; private set; }
 
+    public Solicitacao? Solicitacao { get; private set; }
+
     public int TecnicoId { get; private set; }
     public Tecnico? Tecnico { get; private set; }
 

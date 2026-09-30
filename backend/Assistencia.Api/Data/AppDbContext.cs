@@ -32,6 +32,9 @@ public class AppDbContext : DbContext
     public DbSet<Equipamento> Equipamentos
         => Set<Equipamento>();
 
+    public DbSet<Solicitacao> Solicitacoes
+        => Set<Solicitacao>();
+
     public DbSet<SelecaoTecnico> SelecoesTecnicos
         => Set<SelecaoTecnico>();
 
@@ -71,15 +74,13 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Cliente>()
             .HasOne(c => c.Usuario)
             .WithOne()
-            .HasForeignKey<Cliente>(
-                c => c.UsuarioId)
+            .HasForeignKey<Cliente>(c => c.UsuarioId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Cliente>()
             .HasOne(c => c.Endereco)
             .WithOne(e => e.Cliente)
-            .HasForeignKey<Endereco>(
-                e => e.ClienteId)
+            .HasForeignKey<Endereco>(e => e.ClienteId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Cliente>()
@@ -92,6 +93,34 @@ public class AppDbContext : DbContext
             .HasIndex(e => e.NumeroSerie)
             .IsUnique();
 
+        modelBuilder.Entity<Solicitacao>()
+            .HasIndex(s => s.Numero)
+            .IsUnique();
+
+        modelBuilder.Entity<Solicitacao>()
+            .HasOne(s => s.Cliente)
+            .WithMany()
+            .HasForeignKey(s => s.ClienteId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Solicitacao>()
+            .HasOne(s => s.Equipamento)
+            .WithMany()
+            .HasForeignKey(s => s.EquipamentoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Solicitacao>()
+            .HasOne(s => s.Especialidade)
+            .WithMany()
+            .HasForeignKey(s => s.EspecialidadeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<SelecaoTecnico>()
+            .HasOne(s => s.Solicitacao)
+            .WithMany()
+            .HasForeignKey(s => s.SolicitacaoId)
+            .OnDelete(DeleteBehavior.Restrict);
+            
         modelBuilder.Entity<SelecaoTecnico>()
             .HasOne(s => s.Tecnico)
             .WithMany()

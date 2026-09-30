@@ -11,6 +11,8 @@ export type Pagina =
     | 'equipamentos'
     | 'login'
     | 'perfil-cliente'
+    | 'nova-solicitacao'
+    | 'minhas-solicitacoes'
 
 interface HeaderProps {
     paginaAtual: Pagina
@@ -161,6 +163,34 @@ export function Header({
                     }
                 >
                     Meus equipamentos
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'nova-solicitacao'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('nova-solicitacao')
+                    }
+                >
+                    Nova solicitação
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'minhas-solicitacoes'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('minhas-solicitacoes')
+                    }
+                >
+                    Minhas solicitações
                 </button>
             </nav>
 

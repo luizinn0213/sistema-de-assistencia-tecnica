@@ -87,6 +87,24 @@ public class MatchingController : ControllerBase
     public async Task<ActionResult> SelecionarTecnico(
         SelecionarTecnicoDto dados)
     {
+
+        var solicitacao = await _context.Solicitacoes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s =>
+                s.Id == dados.SolicitacaoId);
+
+        if (solicitacao is null)
+        {
+            return NotFound("Solicitação não encontrada.");
+        }
+
+        if (solicitacao.EspecialidadeId !=
+            dados.EspecialidadeId)
+        {
+            return BadRequest(
+                "A especialidade informada não corresponde à solicitação.");
+        }
+
         var selecaoExistente = await _context.SelecoesTecnicos
             .AnyAsync(s =>
                 s.SolicitacaoId == dados.SolicitacaoId &&

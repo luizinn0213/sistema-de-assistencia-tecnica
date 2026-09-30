@@ -9,6 +9,8 @@ import { Especialidades } from './pages/Especialidades'
 import { ListaTecnicos } from './pages/ListaTecnicos'
 import { Login } from './pages/Login'
 import { MatchingTecnicos } from './pages/MatchingTecnicos'
+import { MinhasSolicitacoes } from './pages/MinhasSolicitacoes'
+import { NovaSolicitacao } from './pages/NovaSolicitacao'
 import { PerfilCliente } from './pages/PerfilCliente'
 import { PerfilTecnico } from './pages/PerfilTecnico'
 import { SolicitacoesTecnico } from './pages/SolicitacoesTecnico'
@@ -62,6 +64,14 @@ function App() {
 
             {pagina === 'perfil-cliente' && (
                 <PerfilCliente />
+            )}
+
+            {pagina === 'nova-solicitacao' && (
+                <NovaSolicitacao />
+            )}
+
+            {pagina === 'minhas-solicitacoes' && (
+                <MinhasSolicitacoes />
             )}
         </>
     )
