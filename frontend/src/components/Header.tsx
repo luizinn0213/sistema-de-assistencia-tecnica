@@ -3,6 +3,7 @@ import { obterSessao } from '../services/authApi'
 export type Pagina =
     | 'tecnicos'
     | 'matching'
+    | 'solicitacoes-tecnico'
     | 'cadastro-tecnico'
     | 'perfil-tecnico'
     | 'especialidades'
@@ -61,9 +62,7 @@ export function Header({
                             : ''
                     }
                     type="button"
-                    onClick={() =>
-                        aoNavegar('tecnicos')
-                    }
+                    onClick={() => aoNavegar('tecnicos')}
                 >
                     Buscar técnicos
                 </button>
@@ -75,11 +74,23 @@ export function Header({
                             : ''
                     }
                     type="button"
-                    onClick={() =>
-                        aoNavegar('matching')
-                    }
+                    onClick={() => aoNavegar('matching')}
                 >
                     Escolher técnico
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'solicitacoes-tecnico'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('solicitacoes-tecnico')
+                    }
+                >
+                    Solicitações
                 </button>
 
                 <button

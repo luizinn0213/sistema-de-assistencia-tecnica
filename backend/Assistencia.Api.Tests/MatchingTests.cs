@@ -22,6 +22,11 @@ public class MatchingTests
 
         Assert.Equal(1, selecao.SolicitacaoId);
         Assert.Null(selecao.DataResposta);
+
+        Assert.Single(selecao.Historico);
+        Assert.Equal(
+            StatusSelecaoTecnico.AguardandoResposta,
+            selecao.Historico.First().Status);
     }
 
     [Fact]
@@ -48,7 +53,7 @@ public class MatchingTests
     }
 
     [Fact]
-    public void DeveAceitarSelecao()
+    public void DeveAceitarSelecaoERegistrarHistorico()
     {
         var tecnico = CriarTecnicoDisponivel();
         var especialidade = CriarEspecialidade();
@@ -65,6 +70,49 @@ public class MatchingTests
             selecao.Status);
 
         Assert.NotNull(selecao.DataResposta);
+        Assert.Equal(2, selecao.Historico.Count);
+
+        var ultimoRegistro = selecao.Historico.Last();
+
+        Assert.Equal(
+            StatusSelecaoTecnico.Aceita,
+            ultimoRegistro.Status);
+
+        Assert.Equal(
+            "Solicitação aceita pelo técnico.",
+            ultimoRegistro.Observacao);
+    }
+
+    [Fact]
+    public void DeveRecusarSelecaoComMotivoERegistrarHistorico()
+    {
+        var tecnico = CriarTecnicoDisponivel();
+        var especialidade = CriarEspecialidade();
+
+        var selecao = new SelecaoTecnico(
+            1,
+            tecnico,
+            especialidade);
+
+        selecao.Recusar(
+            "Não tenho disponibilidade para esta data.");
+
+        Assert.Equal(
+            StatusSelecaoTecnico.Recusada,
+            selecao.Status);
+
+        Assert.NotNull(selecao.DataResposta);
+        Assert.Equal(2, selecao.Historico.Count);
+
+        var ultimoRegistro = selecao.Historico.Last();
+
+        Assert.Equal(
+            StatusSelecaoTecnico.Recusada,
+            ultimoRegistro.Status);
+
+        Assert.Contains(
+            "Não tenho disponibilidade",
+            ultimoRegistro.Observacao);
     }
 
     [Fact]
@@ -78,10 +126,14 @@ public class MatchingTests
             tecnico,
             especialidade);
 
-        selecao.Recusar();
+        selecao.Recusar("Atendimento indisponível.");
 
-        Assert.Throws<InvalidOperationException>(
+        var erro = Assert.Throws<InvalidOperationException>(
             () => selecao.Aceitar());
+
+        Assert.Equal(
+            "Essa seleção já recebeu uma resposta.",
+            erro.Message);
     }
 
     private static Tecnico CriarTecnicoDisponivel()

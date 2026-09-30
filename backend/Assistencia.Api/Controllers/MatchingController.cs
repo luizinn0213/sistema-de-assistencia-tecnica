@@ -201,4 +201,128 @@ public class MatchingController : ControllerBase
             selecao.DataResposta
         });
     }
+
+    [HttpGet("tecnicos/{tecnicoId:int}/pendentes")]
+    public async Task<ActionResult> ListarSelecoesPendentes(
+        int tecnicoId)
+    {
+        var selecoes = await _context.SelecoesTecnicos
+            .Include(s => s.Especialidade)
+            .AsNoTracking()
+            .Where(s =>
+                s.TecnicoId == tecnicoId &&
+                s.Status ==
+                    StatusSelecaoTecnico.AguardandoResposta)
+            .OrderBy(s => s.DataSelecao)
+            .Select(s => new
+            {
+                s.Id,
+                s.SolicitacaoId,
+                s.TecnicoId,
+                s.EspecialidadeId,
+                Especialidade = s.Especialidade!.Nome,
+                Status = s.Status.ToString(),
+                s.DataSelecao
+            })
+            .ToListAsync();
+
+        return Ok(selecoes);
+    }
+
+    [HttpPost("selecoes/{id:int}/aceitar")]
+    public async Task<ActionResult> AceitarSelecao(int id)
+    {
+        var selecao = await _context.SelecoesTecnicos
+            .Include(s => s.Historico)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (selecao is null)
+        {
+            return NotFound("Seleção não encontrada.");
+        }
+
+        try
+        {
+            selecao.Aceitar();
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Mensagem = "Solicitação aceita pelo técnico.",
+                selecao.Id,
+                selecao.SolicitacaoId,
+                selecao.TecnicoId,
+                Status = selecao.Status.ToString(),
+                selecao.DataResposta
+            });
+        }
+        catch (InvalidOperationException erro)
+        {
+            return BadRequest(erro.Message);
+        }
+    }
+
+    [HttpPost("selecoes/{id:int}/recusar")]
+    public async Task<ActionResult> RecusarSelecao(
+        int id,
+        RecusarSelecaoTecnicoDto dados)
+    {
+        var selecao = await _context.SelecoesTecnicos
+            .Include(s => s.Historico)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (selecao is null)
+        {
+            return NotFound("Seleção não encontrada.");
+        }
+
+        try
+        {
+            selecao.Recusar(dados.Motivo);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Mensagem = "Solicitação recusada pelo técnico.",
+                selecao.Id,
+                selecao.SolicitacaoId,
+                selecao.TecnicoId,
+                Status = selecao.Status.ToString(),
+                selecao.DataResposta
+            });
+        }
+        catch (InvalidOperationException erro)
+        {
+            return BadRequest(erro.Message);
+        }
+    }
+
+    [HttpGet("selecoes/{id:int}/historico")]
+    public async Task<ActionResult> ListarHistorico(int id)
+    {
+        var selecaoExiste = await _context.SelecoesTecnicos
+            .AnyAsync(s => s.Id == id);
+
+        if (!selecaoExiste)
+        {
+            return NotFound("Seleção não encontrada.");
+        }
+
+        var historico = await _context.HistoricosSelecoesTecnicos
+            .AsNoTracking()
+            .Where(h => h.SelecaoTecnicoId == id)
+            .OrderBy(h => h.DataRegistro)
+            .Select(h => new
+            {
+                h.Id,
+                h.SelecaoTecnicoId,
+                Status = h.Status.ToString(),
+                h.Observacao,
+                h.DataRegistro
+            })
+            .ToListAsync();
+
+        return Ok(historico);
+    }
+
 }

@@ -18,6 +18,9 @@ public class SelecaoTecnico
     public DateTime DataSelecao { get; private set; }
     public DateTime? DataResposta { get; private set; }
 
+    public ICollection<HistoricoSelecaoTecnico> Historico
+        { get; private set; } = new List<HistoricoSelecaoTecnico>();
+
     // Utilizado pelo Entity Framework
     public SelecaoTecnico()
     {
@@ -65,6 +68,10 @@ public class SelecaoTecnico
 
         Status = StatusSelecaoTecnico.AguardandoResposta;
         DataSelecao = DateTime.UtcNow;
+
+        Historico.Add(new HistoricoSelecaoTecnico(
+            StatusSelecaoTecnico.AguardandoResposta,
+            "Técnico selecionado. Aguardando resposta."));
     }
 
     public void Aceitar()
@@ -73,14 +80,26 @@ public class SelecaoTecnico
 
         Status = StatusSelecaoTecnico.Aceita;
         DataResposta = DateTime.UtcNow;
+
+        Historico.Add(new HistoricoSelecaoTecnico(
+            Status,
+            "Solicitação aceita pelo técnico."));
     }
 
-    public void Recusar()
+    public void Recusar(string? motivo)
     {
         ValidarAguardandoResposta();
 
         Status = StatusSelecaoTecnico.Recusada;
         DataResposta = DateTime.UtcNow;
+
+        var observacao = string.IsNullOrWhiteSpace(motivo)
+            ? "Solicitação recusada pelo técnico."
+            : $"Solicitação recusada: {motivo.Trim()}";
+
+        Historico.Add(new HistoricoSelecaoTecnico(
+            Status,
+            observacao));
     }
 
     private void ValidarAguardandoResposta()

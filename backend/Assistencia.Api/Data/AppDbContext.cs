@@ -17,8 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<Especialidade> Especialidades
         => Set<Especialidade>();
 
-    public DbSet<TecnicoEspecialidade>
-        TecnicosEspecialidades
+    public DbSet<TecnicoEspecialidade> TecnicosEspecialidades
         => Set<TecnicoEspecialidade>();
 
     public DbSet<Usuario> Usuarios
@@ -35,6 +34,9 @@ public class AppDbContext : DbContext
 
     public DbSet<SelecaoTecnico> SelecoesTecnicos
         => Set<SelecaoTecnico>();
+
+    public DbSet<HistoricoSelecaoTecnico> HistoricosSelecoesTecnicos
+        => Set<HistoricoSelecaoTecnico>();
 
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
@@ -107,6 +109,19 @@ public class AppDbContext : DbContext
             {
                 s.SolicitacaoId,
                 s.Status
+            });
+
+        modelBuilder.Entity<HistoricoSelecaoTecnico>()
+            .HasOne(h => h.SelecaoTecnico)
+            .WithMany(s => s.Historico)
+            .HasForeignKey(h => h.SelecaoTecnicoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<HistoricoSelecaoTecnico>()
+            .HasIndex(h => new
+            {
+                h.SelecaoTecnicoId,
+                h.DataRegistro
             });
     }
 }

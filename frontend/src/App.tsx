@@ -2,15 +2,16 @@ import { useState } from 'react'
 import './App.css'
 import { Header } from './components/Header'
 import type { Pagina } from './components/Header'
-import { ListaTecnicos } from './pages/ListaTecnicos'
-import { CadastroTecnico } from './pages/CadastroTecnico'
-import { Especialidades } from './pages/Especialidades'
-import { PerfilTecnico } from './pages/PerfilTecnico'
-import { MatchingTecnicos } from './pages/MatchingTecnicos'
 import { CadastroCliente } from './pages/CadastroCliente'
+import { CadastroTecnico } from './pages/CadastroTecnico'
 import { Equipamentos } from './pages/Equipamentos'
+import { Especialidades } from './pages/Especialidades'
+import { ListaTecnicos } from './pages/ListaTecnicos'
 import { Login } from './pages/Login'
+import { MatchingTecnicos } from './pages/MatchingTecnicos'
 import { PerfilCliente } from './pages/PerfilCliente'
+import { PerfilTecnico } from './pages/PerfilTecnico'
+import { SolicitacoesTecnico } from './pages/SolicitacoesTecnico'
 
 function App() {
     const [pagina, setPagina] =
@@ -29,6 +30,10 @@ function App() {
 
             {pagina === 'matching' && (
                 <MatchingTecnicos />
+            )}
+
+            {pagina === 'solicitacoes-tecnico' && (
+                <SolicitacoesTecnico />
             )}
 
             {pagina === 'cadastro-tecnico' && (
