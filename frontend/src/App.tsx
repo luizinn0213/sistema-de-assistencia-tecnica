@@ -6,28 +6,40 @@ import { ListaTecnicos } from './pages/ListaTecnicos'
 import { CadastroTecnico } from './pages/CadastroTecnico'
 import { Especialidades } from './pages/Especialidades'
 import { PerfilTecnico } from './pages/PerfilTecnico'
+import { MatchingTecnicos } from './pages/MatchingTecnicos'
 
 function App() {
-  const [pagina, setPagina] = useState<Pagina>('tecnicos')
+    const [pagina, setPagina] =
+        useState<Pagina>('tecnicos')
 
-  return (
-    <>
-      <Header
-        paginaAtual={pagina}
-        aoNavegar={setPagina}
-      />
+    return (
+        <>
+            <Header
+                paginaAtual={pagina}
+                aoNavegar={setPagina}
+            />
 
-      {pagina === 'tecnicos' && <ListaTecnicos />}
+            {pagina === 'tecnicos' && (
+                <ListaTecnicos />
+            )}
 
-      {pagina === 'cadastro-tecnico' && (
-        <CadastroTecnico />
-      )}
+            {pagina === 'matching' && (
+                <MatchingTecnicos />
+            )}
 
-      {pagina === 'especialidades' && <Especialidades />}
+            {pagina === 'cadastro-tecnico' && (
+                <CadastroTecnico />
+            )}
 
-      {pagina === 'perfil-tecnico' && <PerfilTecnico />}
-    </>
-  )
+            {pagina === 'especialidades' && (
+                <Especialidades />
+            )}
+
+            {pagina === 'perfil-tecnico' && (
+                <PerfilTecnico />
+            )}
+        </>
+    )
 }
 
 export default App
