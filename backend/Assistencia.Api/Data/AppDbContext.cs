@@ -33,6 +33,9 @@ public class AppDbContext : DbContext
     public DbSet<Equipamento> Equipamentos
         => Set<Equipamento>();
 
+    public DbSet<SelecaoTecnico> SelecoesTecnicos
+        => Set<SelecaoTecnico>();
+
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
@@ -66,13 +69,15 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Cliente>()
             .HasOne(c => c.Usuario)
             .WithOne()
-            .HasForeignKey<Cliente>(c => c.UsuarioId)
+            .HasForeignKey<Cliente>(
+                c => c.UsuarioId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Cliente>()
             .HasOne(c => c.Endereco)
             .WithOne(e => e.Cliente)
-            .HasForeignKey<Endereco>(e => e.ClienteId)
+            .HasForeignKey<Endereco>(
+                e => e.ClienteId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Cliente>()
@@ -84,5 +89,24 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Equipamento>()
             .HasIndex(e => e.NumeroSerie)
             .IsUnique();
+
+        modelBuilder.Entity<SelecaoTecnico>()
+            .HasOne(s => s.Tecnico)
+            .WithMany()
+            .HasForeignKey(s => s.TecnicoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<SelecaoTecnico>()
+            .HasOne(s => s.Especialidade)
+            .WithMany()
+            .HasForeignKey(s => s.EspecialidadeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<SelecaoTecnico>()
+            .HasIndex(s => new
+            {
+                s.SolicitacaoId,
+                s.Status
+            });
     }
 }

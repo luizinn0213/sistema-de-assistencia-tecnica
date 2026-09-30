@@ -6,6 +6,7 @@ import { ListaTecnicos } from './pages/ListaTecnicos'
 import { CadastroTecnico } from './pages/CadastroTecnico'
 import { Especialidades } from './pages/Especialidades'
 import { PerfilTecnico } from './pages/PerfilTecnico'
+import { MatchingTecnicos } from './pages/MatchingTecnicos'
 import { CadastroCliente } from './pages/CadastroCliente'
 import { Equipamentos } from './pages/Equipamentos'
 import { Login } from './pages/Login'
@@ -24,6 +25,10 @@ function App() {
 
             {pagina === 'tecnicos' && (
                 <ListaTecnicos />
+            )}
+
+            {pagina === 'matching' && (
+                <MatchingTecnicos />
             )}
 
             {pagina === 'cadastro-tecnico' && (

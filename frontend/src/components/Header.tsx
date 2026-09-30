@@ -2,6 +2,7 @@ import { obterSessao } from '../services/authApi'
 
 export type Pagina =
     | 'tecnicos'
+    | 'matching'
     | 'cadastro-tecnico'
     | 'perfil-tecnico'
     | 'especialidades'
@@ -65,6 +66,20 @@ export function Header({
                     }
                 >
                     Buscar técnicos
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'matching'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('matching')
+                    }
+                >
+                    Escolher técnico
                 </button>
 
                 <button
