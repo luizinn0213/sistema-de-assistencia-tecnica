@@ -5,18 +5,39 @@ namespace Assistencia.Api.Data;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
+    public AppDbContext(
+        DbContextOptions<AppDbContext> options)
         : base(options)
     {
     }
 
-    public DbSet<Tecnico> Tecnicos => Set<Tecnico>();
-    public DbSet<Especialidade> Especialidades => Set<Especialidade>();
-    public DbSet<TecnicoEspecialidade> TecnicosEspecialidades
+    public DbSet<Tecnico> Tecnicos
+        => Set<Tecnico>();
+
+    public DbSet<Especialidade> Especialidades
+        => Set<Especialidade>();
+
+    public DbSet<TecnicoEspecialidade>
+        TecnicosEspecialidades
         => Set<TecnicoEspecialidade>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public DbSet<Usuario> Usuarios
+        => Set<Usuario>();
+
+    public DbSet<Cliente> Clientes
+        => Set<Cliente>();
+
+    public DbSet<Endereco> Enderecos
+        => Set<Endereco>();
+
+    public DbSet<Equipamento> Equipamentos
+        => Set<Equipamento>();
+
+    protected override void OnModelCreating(
+        ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<TecnicoEspecialidade>()
             .HasKey(te => new
             {
@@ -33,5 +54,35 @@ public class AppDbContext : DbContext
             .HasOne(te => te.Especialidade)
             .WithMany(e => e.TecnicoEspecialidades)
             .HasForeignKey(te => te.EspecialidadeId);
+
+        modelBuilder.Entity<Usuario>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+
+        modelBuilder.Entity<Cliente>()
+            .HasIndex(c => c.CpfCnpj)
+            .IsUnique();
+
+        modelBuilder.Entity<Cliente>()
+            .HasOne(c => c.Usuario)
+            .WithOne()
+            .HasForeignKey<Cliente>(c => c.UsuarioId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Cliente>()
+            .HasOne(c => c.Endereco)
+            .WithOne(e => e.Cliente)
+            .HasForeignKey<Endereco>(e => e.ClienteId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Cliente>()
+            .HasMany(c => c.Equipamentos)
+            .WithOne(e => e.Cliente)
+            .HasForeignKey(e => e.ClienteId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Equipamento>()
+            .HasIndex(e => e.NumeroSerie)
+            .IsUnique();
     }
 }

@@ -1,74 +1,160 @@
+import { obterSessao } from '../services/authApi'
+
 export type Pagina =
-  | 'tecnicos'
-  | 'cadastro-tecnico'
-  | 'perfil-tecnico'
-  | 'especialidades'
+    | 'tecnicos'
+    | 'cadastro-tecnico'
+    | 'perfil-tecnico'
+    | 'especialidades'
+    | 'cadastro-cliente'
+    | 'equipamentos'
+    | 'login'
+    | 'perfil-cliente'
 
 interface HeaderProps {
-  paginaAtual: Pagina
-  aoNavegar: (pagina: Pagina) => void
+    paginaAtual: Pagina
+    aoNavegar: (pagina: Pagina) => void
 }
 
 export function Header({
-  paginaAtual,
-  aoNavegar
+    paginaAtual,
+    aoNavegar
 }: HeaderProps) {
-  return (
-    <header className="barra-superior">
-      <button
-        className="logo"
-        onClick={() => aoNavegar('tecnicos')}
-      >
-        <span>NG</span>
-        OS NARGGETS
-      </button>
+    const sessao = obterSessao()
 
-      <nav className="menu-principal">
-        <button
-          className={paginaAtual === 'tecnicos' ? 'ativo' : ''}
-          onClick={() => aoNavegar('tecnicos')}
-        >
-          Buscar técnicos
-        </button>
+    const iniciais = sessao
+        ? sessao.nome
+              .split(' ')
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((parte) => parte.charAt(0))
+              .join('')
+              .toUpperCase()
+        : 'EN'
 
-        <button
-          className={
-            paginaAtual === 'cadastro-tecnico' ? 'ativo' : ''
-          }
-          onClick={() => aoNavegar('cadastro-tecnico')}
-        >
-          Cadastrar técnico
-        </button>
+    function abrirPerfil() {
+        const sessaoAtual = obterSessao()
 
-        <button
-        className={
-            paginaAtual === 'perfil-tecnico' ? 'ativo' : ''
+        if (sessaoAtual?.clienteId) {
+            aoNavegar('perfil-cliente')
+        } else {
+            aoNavegar('login')
         }
-        onClick={() => aoNavegar('perfil-tecnico')}
-        >
-        Meu perfil técnico
-        </button>
+    }
 
-        <button
-          className={
-            paginaAtual === 'especialidades' ? 'ativo' : ''
-          }
-          onClick={() => aoNavegar('especialidades')}
-        >
-          Especialidades
-        </button>
+    return (
+        <header className="barra-superior">
+            <button
+                className="logo"
+                type="button"
+                onClick={() => aoNavegar('tecnicos')}
+            >
+                <span>NG</span>
+                OS NARGGETS
+            </button>
 
-        <button
-          disabled
-          title="Será integrado ao módulo de clientes"
-        >
-          Meus equipamentos
-        </button>
-      </nav>
+            <nav className="menu-principal">
+                <button
+                    className={
+                        paginaAtual === 'tecnicos'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('tecnicos')
+                    }
+                >
+                    Buscar técnicos
+                </button>
 
-      <button className="botao-perfil" title="Perfil do usuário">
-        LC
-      </button>
-    </header>
-  )
+                <button
+                    className={
+                        paginaAtual === 'cadastro-tecnico'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('cadastro-tecnico')
+                    }
+                >
+                    Cadastrar técnico
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'perfil-tecnico'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('perfil-tecnico')
+                    }
+                >
+                    Perfil técnico
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'especialidades'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('especialidades')
+                    }
+                >
+                    Especialidades
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'cadastro-cliente'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('cadastro-cliente')
+                    }
+                >
+                    Criar conta
+                </button>
+
+                <button
+                    className={
+                        paginaAtual === 'equipamentos'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('equipamentos')
+                    }
+                >
+                    Meus equipamentos
+                </button>
+            </nav>
+
+            <button
+                className={
+                    paginaAtual === 'login' ||
+                    paginaAtual === 'perfil-cliente'
+                        ? 'botao-perfil ativo'
+                        : 'botao-perfil'
+                }
+                type="button"
+                title={
+                    sessao
+                        ? 'Meu perfil'
+                        : 'Entrar no sistema'
+                }
+                onClick={abrirPerfil}
+            >
+                {iniciais}
+            </button>
+        </header>
+    )
 }
