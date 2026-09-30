@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConectaTech — Finalização e Histórico</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="content-container">
+
+            <!-- SEÇÃO: FINALIZAR SERVIÇO -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Finalizar serviço</h2>
+                    <p class="section-subtitle">Registre a solução aplicada e encerre o atendimento</p>
+                </div>
+
+                <form id="form-finalizar" class="form-card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fin-solicitacao-id">ID da Solicitação</label>
+                            <input type="number" id="fin-solicitacao-id" placeholder="Ex: 10" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fin-tecnico-id">ID do Técnico</label>
+                            <input type="number" id="fin-tecnico-id" placeholder="Ex: 3" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fin-solucao">Solução aplicada</label>
+                        <textarea id="fin-solucao" rows="3" placeholder="Descreva o que foi feito..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fin-observacao">Observação final <span class="optional">(opcional)</span></label>
+                        <textarea id="fin-observacao" rows="2" placeholder="Alguma observação adicional..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Finalizar serviço</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- SEÇÃO: HISTÓRICO -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Histórico de atendimento</h2>
+                    <p class="section-subtitle">Visualize todas as ações registradas em uma solicitação</p>
+                </div>
+
+                <div class="form-card inline-form">
+                    <div class="form-group">
+                        <label for="view-solicitacao-id">ID da solicitação</label>
+                        <input type="number" id="view-solicitacao-id" placeholder="Digite o ID">
+                    </div>
+                    <button id="btn-view-historico" class="btn btn-primary">Carregar histórico</button>
+                </div>
+
+                <div id="historico-list" class="timeline">
+                    <!-- Timeline do histórico será carregada aqui -->
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="notification" class="toast hidden">
+        <span id="notification-message"></span>
+    </div>
+
+    <!-- Scripts com type="module" para usar import/export -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
