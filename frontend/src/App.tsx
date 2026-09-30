@@ -10,6 +10,7 @@ import { CadastroCliente } from './pages/CadastroCliente'
 import { Equipamentos } from './pages/Equipamentos'
 import { Login } from './pages/Login'
 import { PerfilCliente } from './pages/PerfilCliente'
+import { NovaSolicitacao } from './pages/NovaSolicitacao'
 
 function App() {
     const [pagina, setPagina] =
@@ -52,6 +53,10 @@ function App() {
 
             {pagina === 'perfil-cliente' && (
                 <PerfilCliente />
+            )}
+
+            {pagina === 'nova-solicitacao' && (
+                <NovaSolicitacao />
             )}
         </>
     )
