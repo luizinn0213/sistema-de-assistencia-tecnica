@@ -269,8 +269,6 @@ public class SolicitacoesTests
         banco.Context.Solicitacoes.Add(primeira);
         await banco.Context.SaveChangesAsync();
 
-        // Força o mesmo número para provar que o índice único
-        // impede a duplicidade.
         banco.Context.Solicitacoes.Add(segunda);
         banco.Context.Entry(segunda)
             .Property(s => s.Numero)
@@ -357,8 +355,6 @@ public class SolicitacoesTests
         Assert.IsType<NotFoundObjectResult>(resultadoOutro);
     }
 
-    // A resposta é um objeto anônimo; convertê-la para JSON
-    // permite ler as propriedades no teste.
     private static JsonElement LerJson(OkObjectResult resultado)
     {
         return JsonSerializer.SerializeToElement(resultado.Value);

@@ -21,7 +21,6 @@ public class Solicitacao
     public int EspecialidadeId { get; private set; }
     public Especialidade? Especialidade { get; private set; }
 
-    // Usado pelo Entity Framework
     public Solicitacao()
     {
     }
@@ -75,8 +74,6 @@ public class Solicitacao
         DataCriacao = DateTime.UtcNow;
     }
 
-    // Formato: SOL-yyyyMMdd-XXXXXXXX.
-    // O índice único no banco garante que não haverá repetição.
     private static string GerarNumero()
     {
         var sufixo = Guid.NewGuid()

@@ -45,8 +45,6 @@ public class SolicitacoesController : ControllerBase
         int clienteId,
         int id)
     {
-        // Filtrar também pelo cliente impede consultar
-        // a solicitação de outro cliente.
         var solicitacao = await _context.Solicitacoes
             .Include(s => s.Equipamento)
             .Include(s => s.Especialidade)
@@ -100,7 +98,6 @@ public class SolicitacoesController : ControllerBase
 
         try
         {
-            // As regras de abertura ficam na entidade.
             var solicitacao = new Solicitacao(
                 clienteId,
                 equipamento,
@@ -139,8 +136,6 @@ public class SolicitacoesController : ControllerBase
             solicitacao.DescricaoProblema,
             Status = solicitacao.Status.ToString(),
 
-            // O SQLite não guarda que a data é UTC; sem isso
-            // o frontend a interpretaria como horário local.
             DataCriacao = DateTime.SpecifyKind(
                 solicitacao.DataCriacao,
                 DateTimeKind.Utc),

@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Assistencia.Api.Dtos;
 
-// Número, data, status e cliente são definidos pelo backend.
 public class CriarSolicitacaoDto
 {
     [Range(1, int.MaxValue, ErrorMessage = "O equipamento é obrigatório.")]

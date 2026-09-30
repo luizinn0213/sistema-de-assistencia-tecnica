@@ -17,7 +17,6 @@ export interface Solicitacao {
     }
 }
 
-// Número, data e status são definidos pelo backend.
 export interface CriarSolicitacaoDados {
     equipamentoId: number
     especialidadeId: number

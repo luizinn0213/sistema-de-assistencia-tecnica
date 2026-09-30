@@ -18,7 +18,6 @@ async function obterErro(
     try {
         const dados = JSON.parse(texto)
 
-        // Erros de validação do ASP.NET chegam em "errors".
         if (dados.errors) {
             const mensagens = Object.values(
                 dados.errors

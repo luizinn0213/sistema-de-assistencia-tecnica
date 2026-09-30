@@ -53,7 +53,6 @@ export function NovaSolicitacao() {
 
                 setEquipamentos(dadosEquipamentos)
 
-                // Especialidades inativas não podem ser usadas.
                 setEspecialidades(
                     dadosEspecialidades.filter(
                         (especialidade) => especialidade.ativa
