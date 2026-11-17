@@ -74,6 +74,43 @@ public class Solicitacao
         DataCriacao = DateTime.UtcNow;
     }
 
+    public void AlterarStatus(StatusSolicitacao novoStatus)
+    {
+        if (Status == StatusSolicitacao.Cancelada ||
+            Status == StatusSolicitacao.Concluida)
+        {
+            throw new InvalidOperationException(
+                "Não é possível alterar uma solicitação encerrada.");
+        }
+
+        if (novoStatus == StatusSolicitacao.Cancelada)
+        {
+            Cancelar();
+            return;
+        }
+
+        if (novoStatus != (StatusSolicitacao)((int)Status + 1))
+        {
+            throw new InvalidOperationException(
+                "Transição de status inválida.");
+        }
+
+        Status = novoStatus;
+    }
+
+    public void Cancelar()
+    {
+        if (Status == StatusSolicitacao.EmExecucao ||
+            Status == StatusSolicitacao.Concluida ||
+            Status == StatusSolicitacao.Cancelada)
+        {
+            throw new InvalidOperationException(
+                "Não é possível cancelar esta solicitação.");
+        }
+
+        Status = StatusSolicitacao.Cancelada;
+    }
+
     private static string GerarNumero()
     {
         var sufixo = Guid.NewGuid()
