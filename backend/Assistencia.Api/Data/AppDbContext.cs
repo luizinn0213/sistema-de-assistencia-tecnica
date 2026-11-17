@@ -41,6 +41,9 @@ public class AppDbContext : DbContext
     public DbSet<HistoricoSelecaoTecnico> HistoricosSelecoesTecnicos
         => Set<HistoricoSelecaoTecnico>();
 
+    public DbSet<HistoricoSolicitacao> HistoricosSolicitacoes
+        => Set<HistoricoSolicitacao>();
+
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
@@ -151,6 +154,19 @@ public class AppDbContext : DbContext
             {
                 h.SelecaoTecnicoId,
                 h.DataRegistro
+            });
+
+        modelBuilder.Entity<HistoricoSolicitacao>()
+            .HasOne(h => h.Solicitacao)
+            .WithMany(s => s.Historico)
+            .HasForeignKey(h => h.SolicitacaoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<HistoricoSolicitacao>()
+            .HasIndex(h => new
+            {
+                h.SolicitacaoId,
+                h.DataAlteracao
             });
     }
 }

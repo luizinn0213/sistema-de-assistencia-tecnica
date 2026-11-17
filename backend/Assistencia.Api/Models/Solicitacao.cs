@@ -21,6 +21,9 @@ public class Solicitacao
     public int EspecialidadeId { get; private set; }
     public Especialidade? Especialidade { get; private set; }
 
+    public ICollection<HistoricoSolicitacao> Historico
+        { get; private set; } = new List<HistoricoSolicitacao>();
+
     public Solicitacao()
     {
     }
@@ -95,7 +98,7 @@ public class Solicitacao
                 "Transição de status inválida.");
         }
 
-        Status = novoStatus;
+        RegistrarAlteracaoStatus(novoStatus);
     }
 
     public void Cancelar()
@@ -108,7 +111,20 @@ public class Solicitacao
                 "Não é possível cancelar esta solicitação.");
         }
 
-        Status = StatusSolicitacao.Cancelada;
+        RegistrarAlteracaoStatus(StatusSolicitacao.Cancelada);
+    }
+
+    private void RegistrarAlteracaoStatus(
+        StatusSolicitacao novoStatus)
+    {
+        var statusAnterior = Status;
+
+        Status = novoStatus;
+
+        Historico.Add(new HistoricoSolicitacao(
+            this,
+            statusAnterior,
+            novoStatus));
     }
 
     private static string GerarNumero()
