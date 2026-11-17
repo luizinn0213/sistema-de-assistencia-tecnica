@@ -41,6 +41,47 @@ namespace Assistencia.Api.Migrations
                     b.ToTable("Clientes");
                 });
 
+            modelBuilder.Entity("Assistencia.Api.Models.Diagnostico", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DataConclusao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DescricaoDefeito")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SolicitacaoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SolucaoRecomendada")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TecnicoId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SolicitacaoId")
+                        .IsUnique();
+
+                    b.HasIndex("TecnicoId");
+
+                    b.ToTable("Diagnosticos");
+                });
+
             modelBuilder.Entity("Assistencia.Api.Models.Endereco", b =>
                 {
                     b.Property<int>("Id")
@@ -348,6 +389,25 @@ namespace Assistencia.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.Diagnostico", b =>
+                {
+                    b.HasOne("Assistencia.Api.Models.Solicitacao", "Solicitacao")
+                        .WithMany()
+                        .HasForeignKey("SolicitacaoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Assistencia.Api.Models.Tecnico", "Tecnico")
+                        .WithMany()
+                        .HasForeignKey("TecnicoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Solicitacao");
+
+                    b.Navigation("Tecnico");
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.Endereco", b =>

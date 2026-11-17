@@ -11,6 +11,9 @@ public class AppDbContext : DbContext
     {
     }
 
+    public DbSet<Diagnostico> Diagnosticos
+        => Set<Diagnostico>();
+
     public DbSet<Tecnico> Tecnicos
         => Set<Tecnico>();
 
@@ -152,5 +155,31 @@ public class AppDbContext : DbContext
                 h.SelecaoTecnicoId,
                 h.DataRegistro
             });
+
+        modelBuilder.Entity<Diagnostico>()
+            .HasOne(d => d.Solicitacao)
+            .WithMany()
+            .HasForeignKey(d => d.SolicitacaoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Diagnostico>()
+            .HasOne(d => d.Tecnico)
+            .WithMany()
+            .HasForeignKey(d => d.TecnicoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Diagnostico>()
+            .HasIndex(d => d.SolicitacaoId)
+            .IsUnique();
+
+        modelBuilder.Entity<Diagnostico>()
+            .Property(d => d.DescricaoDefeito)
+            .HasMaxLength(Diagnostico.TamanhoMaximoDescricao)
+            .IsRequired();
+
+        modelBuilder.Entity<Diagnostico>()
+            .Property(d => d.SolucaoRecomendada)
+            .HasMaxLength(Diagnostico.TamanhoMaximoDescricao)
+            .IsRequired();
     }
 }

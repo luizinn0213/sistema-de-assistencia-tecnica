@@ -1,5 +1,9 @@
 using Assistencia.Api.Data;
 using Microsoft.EntityFrameworkCore;
+using Assistencia.Api.Repositories;
+using Assistencia.Api.Repositories.Contracts;
+using Assistencia.Api.Services;
+using Assistencia.Api.Services.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +13,18 @@ builder.Services.AddControllers();
 // Registra a documentação OpenAPI.
 builder.Services.AddOpenApi();
 
+builder.Services.AddScoped<
+    IDiagnosticoRepository,
+    DiagnosticoRepository>();
+
+builder.Services.AddScoped<
+    ISelecaoTecnicoRepository,
+    SelecaoTecnicoRepository>();
+
+builder.Services.AddScoped<
+    IDiagnosticoService,
+    DiagnosticoService>();
+    
 // Registra o Entity Framework usando SQLite.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(
