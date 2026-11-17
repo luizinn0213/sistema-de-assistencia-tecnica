@@ -23,28 +23,15 @@ public class DiagnosticosController : ControllerBase
         CriarDiagnosticoDto dados,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var diagnostico =
-                await _diagnosticoService.CriarAsync(
-                    dados,
-                    cancellationToken);
+        var diagnostico =
+            await _diagnosticoService.CriarAsync(
+                dados,
+                cancellationToken);
 
-            return CreatedAtAction(
-                nameof(ObterPorId),
-                new { id = diagnostico.Id },
-                CriarResposta(diagnostico));
-        }
-        catch (ArgumentException erro)
-        {
-            return BadRequest(
-                new { erro = erro.Message });
-        }
-        catch (InvalidOperationException erro)
-        {
-            return Conflict(
-                new { erro = erro.Message });
-        }
+        return CreatedAtAction(
+            nameof(ObterPorId),
+            new { id = diagnostico.Id },
+            CriarResposta(diagnostico));
     }
 
     [HttpGet("{id:int}")]
@@ -52,25 +39,12 @@ public class DiagnosticosController : ControllerBase
         int id,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var diagnostico =
-                await _diagnosticoService.ObterPorIdAsync(
-                    id,
-                    cancellationToken);
+        var diagnostico =
+            await _diagnosticoService.ObterPorIdAsync(
+                id,
+                cancellationToken);
 
-            return Ok(CriarResposta(diagnostico));
-        }
-        catch (ArgumentException erro)
-        {
-            return BadRequest(
-                new { erro = erro.Message });
-        }
-        catch (KeyNotFoundException erro)
-        {
-            return NotFound(
-                new { erro = erro.Message });
-        }
+        return Ok(CriarResposta(diagnostico));
     }
 
     [HttpGet("solicitacao/{solicitacaoId:int}")]
@@ -78,26 +52,13 @@ public class DiagnosticosController : ControllerBase
         int solicitacaoId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var diagnostico =
-                await _diagnosticoService
-                    .ObterPorSolicitacaoAsync(
-                        solicitacaoId,
-                        cancellationToken);
+        var diagnostico =
+            await _diagnosticoService
+                .ObterPorSolicitacaoAsync(
+                    solicitacaoId,
+                    cancellationToken);
 
-            return Ok(CriarResposta(diagnostico));
-        }
-        catch (ArgumentException erro)
-        {
-            return BadRequest(
-                new { erro = erro.Message });
-        }
-        catch (KeyNotFoundException erro)
-        {
-            return NotFound(
-                new { erro = erro.Message });
-        }
+        return Ok(CriarResposta(diagnostico));
     }
 
     [HttpPut("{id:int}")]
@@ -106,31 +67,13 @@ public class DiagnosticosController : ControllerBase
         AtualizarDiagnosticoDto dados,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var diagnostico =
-                await _diagnosticoService.AtualizarAsync(
-                    id,
-                    dados,
-                    cancellationToken);
+        var diagnostico =
+            await _diagnosticoService.AtualizarAsync(
+                id,
+                dados,
+                cancellationToken);
 
-            return Ok(CriarResposta(diagnostico));
-        }
-        catch (ArgumentException erro)
-        {
-            return BadRequest(
-                new { erro = erro.Message });
-        }
-        catch (KeyNotFoundException erro)
-        {
-            return NotFound(
-                new { erro = erro.Message });
-        }
-        catch (InvalidOperationException erro)
-        {
-            return Conflict(
-                new { erro = erro.Message });
-        }
+        return Ok(CriarResposta(diagnostico));
     }
 
     [HttpPost("{id:int}/concluir")]
@@ -138,30 +81,12 @@ public class DiagnosticosController : ControllerBase
         int id,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var diagnostico =
-                await _diagnosticoService.ConcluirAsync(
-                    id,
-                    cancellationToken);
+        var diagnostico =
+            await _diagnosticoService.ConcluirAsync(
+                id,
+                cancellationToken);
 
-            return Ok(CriarResposta(diagnostico));
-        }
-        catch (ArgumentException erro)
-        {
-            return BadRequest(
-                new { erro = erro.Message });
-        }
-        catch (KeyNotFoundException erro)
-        {
-            return NotFound(
-                new { erro = erro.Message });
-        }
-        catch (InvalidOperationException erro)
-        {
-            return Conflict(
-                new { erro = erro.Message });
-        }
+        return Ok(CriarResposta(diagnostico));
     }
 
     private static object CriarResposta(
@@ -182,10 +107,7 @@ public class DiagnosticosController : ControllerBase
 
             diagnostico.DescricaoDefeito,
             diagnostico.SolucaoRecomendada,
-
-            Status =
-                diagnostico.Status.ToString(),
-
+            Status = diagnostico.Status.ToString(),
             diagnostico.DataCriacao,
             diagnostico.DataConclusao
         };

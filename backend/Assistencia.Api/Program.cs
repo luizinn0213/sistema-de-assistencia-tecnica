@@ -4,11 +4,15 @@ using Assistencia.Api.Repositories;
 using Assistencia.Api.Repositories.Contracts;
 using Assistencia.Api.Services;
 using Assistencia.Api.Services.Contracts;
+using Assistencia.Api.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Registra os controllers da API.
-builder.Services.AddControllers();
+builder.Services.AddControllers(opcoes =>
+{
+    opcoes.Filters.Add<ApiExceptionFilter>();
+});
 
 // Registra a documentação OpenAPI.
 builder.Services.AddOpenApi();
@@ -24,6 +28,14 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IDiagnosticoService,
     DiagnosticoService>();
+
+builder.Services.AddScoped<
+    IOrcamentoRepository,
+    OrcamentoRepository>();
+    
+builder.Services.AddScoped<
+    IOrcamentoService,
+    OrcamentoService>();    
     
 // Registra o Entity Framework usando SQLite.
 builder.Services.AddDbContext<AppDbContext>(options =>
