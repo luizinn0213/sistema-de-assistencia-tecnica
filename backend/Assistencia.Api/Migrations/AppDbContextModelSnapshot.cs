@@ -180,6 +180,33 @@ namespace Assistencia.Api.Migrations
                     b.ToTable("Especialidades");
                 });
 
+            modelBuilder.Entity("Assistencia.Api.Models.HistoricoOrcamento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DataRegistro")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Observacao")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrcamentoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrcamentoId", "DataRegistro");
+
+                    b.ToTable("HistoricosOrcamento");
+                });
+
             modelBuilder.Entity("Assistencia.Api.Models.HistoricoSelecaoTecnico", b =>
                 {
                     b.Property<int>("Id")
@@ -204,6 +231,66 @@ namespace Assistencia.Api.Migrations
                     b.HasIndex("SelecaoTecnicoId", "DataRegistro");
 
                     b.ToTable("HistoricosSelecoesTecnicos");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.ItemOrcamento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrcamentoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("ValorUnitario")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrcamentoId");
+
+                    b.ToTable("ItensOrcamento");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.Orcamento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DataEnvio")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DataResposta")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DiagnosticoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiagnosticoId")
+                        .IsUnique();
+
+                    b.ToTable("Orcamentos");
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.SelecaoTecnico", b =>
@@ -432,6 +519,17 @@ namespace Assistencia.Api.Migrations
                     b.Navigation("Cliente");
                 });
 
+            modelBuilder.Entity("Assistencia.Api.Models.HistoricoOrcamento", b =>
+                {
+                    b.HasOne("Assistencia.Api.Models.Orcamento", "Orcamento")
+                        .WithMany("Historico")
+                        .HasForeignKey("OrcamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Orcamento");
+                });
+
             modelBuilder.Entity("Assistencia.Api.Models.HistoricoSelecaoTecnico", b =>
                 {
                     b.HasOne("Assistencia.Api.Models.SelecaoTecnico", "SelecaoTecnico")
@@ -441,6 +539,28 @@ namespace Assistencia.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("SelecaoTecnico");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.ItemOrcamento", b =>
+                {
+                    b.HasOne("Assistencia.Api.Models.Orcamento", "Orcamento")
+                        .WithMany("Itens")
+                        .HasForeignKey("OrcamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Orcamento");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.Orcamento", b =>
+                {
+                    b.HasOne("Assistencia.Api.Models.Diagnostico", "Diagnostico")
+                        .WithOne()
+                        .HasForeignKey("Assistencia.Api.Models.Orcamento", "DiagnosticoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Diagnostico");
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.SelecaoTecnico", b =>
@@ -526,6 +646,13 @@ namespace Assistencia.Api.Migrations
             modelBuilder.Entity("Assistencia.Api.Models.Especialidade", b =>
                 {
                     b.Navigation("TecnicoEspecialidades");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.Orcamento", b =>
+                {
+                    b.Navigation("Historico");
+
+                    b.Navigation("Itens");
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.SelecaoTecnico", b =>

@@ -44,6 +44,15 @@ public class AppDbContext : DbContext
     public DbSet<HistoricoSelecaoTecnico> HistoricosSelecoesTecnicos
         => Set<HistoricoSelecaoTecnico>();
 
+    public DbSet<Orcamento> Orcamentos
+    => Set<Orcamento>();
+
+    public DbSet<ItemOrcamento> ItensOrcamento
+        => Set<ItemOrcamento>();
+
+    public DbSet<HistoricoOrcamento> HistoricosOrcamento
+        => Set<HistoricoOrcamento>();
+        
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
@@ -181,5 +190,69 @@ public class AppDbContext : DbContext
             .Property(d => d.SolucaoRecomendada)
             .HasMaxLength(Diagnostico.TamanhoMaximoDescricao)
             .IsRequired();
+
+        modelBuilder.Entity<Orcamento>()
+            .HasOne(o => o.Diagnostico)
+            .WithOne()
+            .HasForeignKey<Orcamento>(
+                o => o.DiagnosticoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Orcamento>()
+            .HasIndex(o => o.DiagnosticoId)
+            .IsUnique();
+
+        modelBuilder.Entity<Orcamento>()
+            .HasMany(o => o.Itens)
+            .WithOne(i => i.Orcamento)
+            .HasForeignKey(i => i.OrcamentoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Orcamento>()
+            .Navigation(o => o.Itens)
+            .UsePropertyAccessMode(
+                PropertyAccessMode.Field);
+
+        modelBuilder.Entity<Orcamento>()
+            .HasMany(o => o.Historico)
+            .WithOne(h => h.Orcamento)
+            .HasForeignKey(h => h.OrcamentoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Orcamento>()
+            .Navigation(o => o.Historico)
+            .UsePropertyAccessMode(
+                PropertyAccessMode.Field);
+
+        modelBuilder.Entity<Orcamento>()
+            .Ignore(o => o.ValorTotal);
+
+        modelBuilder.Entity<ItemOrcamento>()
+            .Property(i => i.Descricao)
+            .HasMaxLength(
+                ItemOrcamento.TamanhoMaximoDescricao)
+            .IsRequired();
+
+        modelBuilder.Entity<ItemOrcamento>()
+            .Property(i => i.ValorUnitario)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ItemOrcamento>()
+            .Ignore(i => i.ValorTotal);
+
+        modelBuilder.Entity<HistoricoOrcamento>()
+            .Property(h => h.Observacao)
+            .HasMaxLength(
+                HistoricoOrcamento
+                    .TamanhoMaximoObservacao)
+            .IsRequired();
+
+        modelBuilder.Entity<HistoricoOrcamento>()
+            .HasIndex(h => new
+            {
+                h.OrcamentoId,
+                h.DataRegistro
+            });
+            
     }
 }
