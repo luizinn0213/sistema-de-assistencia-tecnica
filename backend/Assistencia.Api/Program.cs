@@ -1,5 +1,9 @@
 using Assistencia.Api.Data;
 using Microsoft.EntityFrameworkCore;
+using Assistencia.Api.Repositories;
+using Assistencia.Api.Repositories.Contracts;
+using Assistencia.Api.Services.Contracts;
+using Assistencia.Api.Services.Matching;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,26 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<
+    IMatchingRepository,
+    MatchingRepository>();
+
+builder.Services.AddScoped<
+    IMatchingService,
+    MatchingService>();
+
+builder.Services.AddScoped<
+    ICriterioPontuacaoMatching,
+    CriterioEspecialidade>();
+
+builder.Services.AddScoped<
+    ICriterioPontuacaoMatching,
+    CriterioExperiencia>();
+
+builder.Services.AddScoped<
+    ICriterioPontuacaoMatching,
+    CriterioLocalizacao>();
 
 builder.Services.AddCors(options =>
 {
