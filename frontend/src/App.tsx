@@ -1,80 +1,21 @@
-import { useState } from 'react'
-import './App.css'
-import { Header } from './components/Header'
-import type { Pagina } from './components/Header'
-import { CadastroCliente } from './pages/CadastroCliente'
-import { CadastroTecnico } from './pages/CadastroTecnico'
-import { Equipamentos } from './pages/Equipamentos'
-import { Especialidades } from './pages/Especialidades'
-import { ListaTecnicos } from './pages/ListaTecnicos'
-import { Login } from './pages/Login'
-import { MatchingTecnicos } from './pages/MatchingTecnicos'
-import { MinhasSolicitacoes } from './pages/MinhasSolicitacoes'
-import { NovaSolicitacao } from './pages/NovaSolicitacao'
-import { PerfilCliente } from './pages/PerfilCliente'
-import { PerfilTecnico } from './pages/PerfilTecnico'
-import { SolicitacoesTecnico } from './pages/SolicitacoesTecnico'
+import { Route, Routes } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+import Header from "@/components/Header";
+import ListaTecnicos from "@/pages/ListaTecnicos";
+import Solicitacoes from "@/pages/Solicitacoes";
 
-function App() {
-    const [pagina, setPagina] =
-        useState<Pagina>('tecnicos')
+// Uma <Route> por página em src/pages; BrowserRouter já envolve o App em main.tsx.
+export default function App() {
+  return (
+    <>
+      <Header />
 
-    return (
-        <>
-            <Header
-                paginaAtual={pagina}
-                aoNavegar={setPagina}
-            />
+      <Routes>
+        <Route path="/" element={<ListaTecnicos />} />
+        <Route path="/solicitacoes" element={<Solicitacoes />} />
+      </Routes>
 
-            {pagina === 'tecnicos' && (
-                <ListaTecnicos />
-            )}
-
-            {pagina === 'matching' && (
-                <MatchingTecnicos />
-            )}
-
-            {pagina === 'solicitacoes-tecnico' && (
-                <SolicitacoesTecnico />
-            )}
-
-            {pagina === 'cadastro-tecnico' && (
-                <CadastroTecnico />
-            )}
-
-            {pagina === 'especialidades' && (
-                <Especialidades />
-            )}
-
-            {pagina === 'perfil-tecnico' && (
-                <PerfilTecnico />
-            )}
-
-            {pagina === 'cadastro-cliente' && (
-                <CadastroCliente />
-            )}
-
-            {pagina === 'equipamentos' && (
-                <Equipamentos />
-            )}
-
-            {pagina === 'login' && (
-                <Login />
-            )}
-
-            {pagina === 'perfil-cliente' && (
-                <PerfilCliente />
-            )}
-
-            {pagina === 'nova-solicitacao' && (
-                <NovaSolicitacao />
-            )}
-
-            {pagina === 'minhas-solicitacoes' && (
-                <MinhasSolicitacoes />
-            )}
-        </>
-    )
+      <Toaster />
+    </>
+  );
 }
-
-export default App

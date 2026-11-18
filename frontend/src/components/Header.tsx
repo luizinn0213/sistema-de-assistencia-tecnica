@@ -1,216 +1,57 @@
-import { obterSessao } from '../services/authApi'
+import { Link, NavLink } from "react-router-dom";
 
-export type Pagina =
-    | 'tecnicos'
-    | 'matching'
-    | 'solicitacoes-tecnico'
-    | 'cadastro-tecnico'
-    | 'perfil-tecnico'
-    | 'especialidades'
-    | 'cadastro-cliente'
-    | 'equipamentos'
-    | 'login'
-    | 'perfil-cliente'
-    | 'nova-solicitacao'
-    | 'minhas-solicitacoes'
+// Módulos dos outros integrantes: ficam desabilitados até a integração final
+// (mesmo padrão do "Meus equipamentos" do layout original).
+const MODULOS_EXTERNOS = [
+  { rotulo: "Cadastrar técnico", aviso: "Módulo de outro integrante — será integrado futuramente" },
+  { rotulo: "Meu perfil técnico", aviso: "Módulo de outro integrante — será integrado futuramente" },
+  { rotulo: "Especialidades", aviso: "Módulo de outro integrante — será integrado futuramente" },
+  { rotulo: "Meus equipamentos", aviso: "Será integrado ao módulo de clientes" },
+];
 
-interface HeaderProps {
-    paginaAtual: Pagina
-    aoNavegar: (pagina: Pagina) => void
-}
+export default function Header() {
+  return (
+    <header className="barra-superior">
+      <Link to="/" className="logo" data-testid="logo-os-narggets">
+        <span>NG</span>
+        OS NARGGETS
+      </Link>
 
-export function Header({
-    paginaAtual,
-    aoNavegar
-}: HeaderProps) {
-    const sessao = obterSessao()
+      <nav className="menu-principal">
+        <NavLink
+          to="/solicitacoes"
+          className={({ isActive }) => (isActive ? "ativo" : "")}
+          data-testid="nav-servicos"
+        >
+          Serviços
+        </NavLink>
 
-    const iniciais = sessao
-        ? sessao.nome
-              .split(' ')
-              .filter(Boolean)
-              .slice(0, 2)
-              .map((parte) => parte.charAt(0))
-              .join('')
-              .toUpperCase()
-        : 'EN'
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) => (isActive ? "ativo" : "")}
+          data-testid="nav-buscar-tecnicos"
+        >
+          Buscar técnicos
+        </NavLink>
 
-    function abrirPerfil() {
-        const sessaoAtual = obterSessao()
+        {MODULOS_EXTERNOS.map((modulo) => (
+          <button
+            key={modulo.rotulo}
+            disabled
+            title={modulo.aviso}
+            data-testid={`nav-modulo-externo-${modulo.rotulo
+              .toLowerCase()
+              .replace(/\s+/g, "-")}`}
+          >
+            {modulo.rotulo}
+          </button>
+        ))}
+      </nav>
 
-        if (sessaoAtual?.clienteId) {
-            aoNavegar('perfil-cliente')
-        } else {
-            aoNavegar('login')
-        }
-    }
-
-    return (
-        <header className="barra-superior">
-            <button
-                className="logo"
-                type="button"
-                onClick={() => aoNavegar('tecnicos')}
-            >
-                <span>NG</span>
-                OS NARGGETS
-            </button>
-
-            <nav className="menu-principal">
-                <button
-                    className={
-                        paginaAtual === 'tecnicos'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() => aoNavegar('tecnicos')}
-                >
-                    Buscar técnicos
-                </button>
-
-                <button
-                    className={
-                        paginaAtual === 'matching'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() => aoNavegar('matching')}
-                >
-                    Escolher técnico
-                </button>
-
-                <button
-                    className={
-                        paginaAtual === 'solicitacoes-tecnico'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() =>
-                        aoNavegar('solicitacoes-tecnico')
-                    }
-                >
-                    Solicitações
-                </button>
-
-                <button
-                    className={
-                        paginaAtual === 'cadastro-tecnico'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() =>
-                        aoNavegar('cadastro-tecnico')
-                    }
-                >
-                    Cadastrar técnico
-                </button>
-
-                <button
-                    className={
-                        paginaAtual === 'perfil-tecnico'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() =>
-                        aoNavegar('perfil-tecnico')
-                    }
-                >
-                    Perfil técnico
-                </button>
-
-                <button
-                    className={
-                        paginaAtual === 'especialidades'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() =>
-                        aoNavegar('especialidades')
-                    }
-                >
-                    Especialidades
-                </button>
-
-                <button
-                    className={
-                        paginaAtual === 'cadastro-cliente'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() =>
-                        aoNavegar('cadastro-cliente')
-                    }
-                >
-                    Criar conta
-                </button>
-
-                <button
-                    className={
-                        paginaAtual === 'equipamentos'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() =>
-                        aoNavegar('equipamentos')
-                    }
-                >
-                    Meus equipamentos
-                </button>
-
-                <button
-                    className={
-                        paginaAtual === 'nova-solicitacao'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() =>
-                        aoNavegar('nova-solicitacao')
-                    }
-                >
-                    Nova solicitação
-                </button>
-
-                <button
-                    className={
-                        paginaAtual === 'minhas-solicitacoes'
-                            ? 'ativo'
-                            : ''
-                    }
-                    type="button"
-                    onClick={() =>
-                        aoNavegar('minhas-solicitacoes')
-                    }
-                >
-                    Minhas solicitações
-                </button>
-            </nav>
-
-            <button
-                className={
-                    paginaAtual === 'login' ||
-                    paginaAtual === 'perfil-cliente'
-                        ? 'botao-perfil ativo'
-                        : 'botao-perfil'
-                }
-                type="button"
-                title={
-                    sessao
-                        ? 'Meu perfil'
-                        : 'Entrar no sistema'
-                }
-                onClick={abrirPerfil}
-            >
-                {iniciais}
-            </button>
-        </header>
-    )
+      <button className="botao-perfil" title="Perfil do usuário" data-testid="botao-perfil">
+        LC
+      </button>
+    </header>
+  );
 }

@@ -1,135 +1,117 @@
-import { useEffect, useState } from 'react'
-import { listarTecnicos } from '../services/tecnicosApi'
-import type { Tecnico } from '../types/Tecnico'
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
-export function ListaTecnicos() {
-  const [tecnicos, setTecnicos] = useState<Tecnico[]>([])
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState('')
+import { listarSolicitacoes, mensagemDeErro } from "@/services/solicitacoesApi";
+import { listarTecnicos } from "@/services/tecnicosApi";
 
-  useEffect(() => {
-    let componenteAtivo = true
+export default function ListaTecnicos() {
+  // A casca da página (hero, grade) renderiza sempre; só a região de dados
+  // depende do fetch — sem backend a página continua de pé, nunca branca.
+  const { data: tecnicos = [], isLoading, error } = useQuery({
+    queryKey: ["tecnicos"],
+    queryFn: listarTecnicos,
+  });
 
-    listarTecnicos()
-      .then((dados) => {
-        if (componenteAtivo) {
-          setTecnicos(dados)
-        }
-      })
-      .catch(() => {
-        if (componenteAtivo) {
-          setErro('Não foi possível carregar os técnicos.')
-        }
-      })
-      .finally(() => {
-        if (componenteAtivo) {
-          setCarregando(false)
-        }
-      })
+  // Avaliações reais calculadas das solicitações já avaliadas no fluxo de serviços.
+  const { data: solicitacoes = [] } = useQuery({
+    queryKey: ["solicitacoes"],
+    queryFn: listarSolicitacoes,
+  });
 
-    return () => {
-      componenteAtivo = false
+  const avaliacoes = useMemo(() => {
+    const porTecnico = new Map<number, { soma: number; total: number }>();
+    for (const solicitacao of solicitacoes) {
+      if (solicitacao.tecnicoId === null || solicitacao.notaAvaliacao === null) continue;
+      const atual = porTecnico.get(solicitacao.tecnicoId) ?? { soma: 0, total: 0 };
+      atual.soma += solicitacao.notaAvaliacao;
+      atual.total += 1;
+      porTecnico.set(solicitacao.tecnicoId, atual);
     }
-  }, [])
-
-  if (carregando) {
-    return (
-      <main className="pagina-conteudo">
-        <p>Carregando técnicos...</p>
-      </main>
-    )
-  }
-
-  if (erro) {
-    return (
-      <main className="pagina-conteudo">
-        <p className="mensagem erro">{erro}</p>
-      </main>
-    )
-  }
+    return porTecnico;
+  }, [solicitacoes]);
 
   return (
     <main className="pagina-tecnicos">
       <header className="cabecalho-pagina">
         <div>
-          <span className="subtitulo">
-            Assistência técnica confiável
-          </span>
+          <span className="subtitulo">Assistência técnica confiável</span>
 
-          <h1>
-            Encontre o técnico certo para seu equipamento
-          </h1>
+          <h1>Encontre o técnico certo para seu equipamento</h1>
 
-          <p>
-            Consulte profissionais, especialidades e
-            disponibilidade.
-          </p>
+          <p>Consulte profissionais, especialidades e disponibilidade.</p>
         </div>
       </header>
 
-      <section className="grade-tecnicos">
-        {tecnicos.length === 0 && (
+      <section className="grade-tecnicos" data-testid="grade-tecnicos">
+        {isLoading && <p>Carregando técnicos...</p>}
+
+        {error && <p className="mensagem erro">{mensagemDeErro(error)}</p>}
+
+        {!isLoading && !error && tecnicos.length === 0 && (
           <p>Nenhum técnico cadastrado.</p>
         )}
 
-        {tecnicos.map((tecnico) => (
-          <article
-            className="cartao-tecnico"
-            key={tecnico.id}
-          >
-            <div className="avatar">
-              {tecnico.nomeExibicao
-                .charAt(0)
-                .toUpperCase()}
-            </div>
+        {tecnicos.map((tecnico) => {
+          const avaliacao = avaliacoes.get(tecnico.id);
 
-            <div className="dados-tecnico">
-              <div className="titulo-cartao">
-                <h2>{tecnico.nomeExibicao}</h2>
+          return (
+            <article className="cartao-tecnico" key={tecnico.id} data-testid="cartao-tecnico">
+              <div className="avatar">{tecnico.nomeExibicao.charAt(0).toUpperCase()}</div>
 
-                <span
-                  className={
-                    tecnico.disponivel
-                      ? 'status disponivel'
-                      : 'status indisponivel'
-                  }
-                >
-                  {tecnico.disponivel
-                    ? 'Disponível'
-                    : 'Indisponível'}
-                </span>
-              </div>
+              <div className="dados-tecnico">
+                <div className="titulo-cartao">
+                  <h2>{tecnico.nomeExibicao}</h2>
 
-              <p>{tecnico.descricaoProfissional}</p>
-
-              <p className="localizacao">
-                {tecnico.cidadeAtendimento} -{' '}
-                {tecnico.estadoAtendimento}
-              </p>
-
-              <div className="especialidades">
-                {tecnico.especialidades.length === 0 && (
-                  <span>
-                    Sem especialidades cadastradas
+                  <span
+                    className={
+                      tecnico.disponivel ? "status disponivel" : "status indisponivel"
+                    }
+                  >
+                    {tecnico.disponivel ? "Disponível" : "Indisponível"}
                   </span>
+                </div>
+
+                <p>{tecnico.descricaoProfissional}</p>
+
+                <p className="localizacao">
+                  {tecnico.cidadeAtendimento} - {tecnico.estadoAtendimento}
+                </p>
+
+                {avaliacao && avaliacao.total > 0 && (
+                  <p className="avaliacao-tecnico" data-testid="avaliacao-tecnico">
+                    ★ {(avaliacao.soma / avaliacao.total).toFixed(1).replace(".", ",")} (
+                    {avaliacao.total}{" "}
+                    {avaliacao.total === 1 ? "avaliação" : "avaliações"})
+                  </p>
                 )}
 
-                {tecnico.especialidades.map(
-                  (especialidade) => (
-                    <span
-                      className="etiqueta"
-                      key={especialidade.especialidadeId}
-                    >
-                      {especialidade.nome} ·{' '}
-                      {especialidade.nivelExperiencia}
+                <div className="especialidades">
+                  {tecnico.especialidades.length === 0 && (
+                    <span>Sem especialidades cadastradas</span>
+                  )}
+
+                  {tecnico.especialidades.map((especialidade) => (
+                    <span className="etiqueta" key={especialidade.especialidadeId}>
+                      {especialidade.nome} · {especialidade.nivelExperiencia}
                     </span>
-                  )
-                )}
+                  ))}
+                </div>
+
+                <div className="acoes-cartao">
+                  <Link
+                    className="botao-secundario"
+                    to={`/solicitacoes?tecnicoId=${tecnico.id}`}
+                    data-testid={`btn-solicitar-servico-${tecnico.id}`}
+                  >
+                    Solicitar serviço
+                  </Link>
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </section>
     </main>
-  )
+  );
 }
