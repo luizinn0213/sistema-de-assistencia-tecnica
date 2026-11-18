@@ -182,9 +182,14 @@ public class OrcamentosController : ControllerBase
                     .Solicitacao?.Numero,
 
             Status = orcamento.Status.ToString(),
-            orcamento.DataCriacao,
-            orcamento.DataEnvio,
-            orcamento.DataResposta,
+            DataCriacao = ComoUtc(
+                orcamento.DataCriacao),
+
+            DataEnvio = ComoUtc(
+                orcamento.DataEnvio),
+
+            DataResposta = ComoUtc(
+                orcamento.DataResposta),
             orcamento.ValorTotal,
 
             Itens = orcamento.Itens
@@ -206,8 +211,26 @@ public class OrcamentosController : ControllerBase
                     h.Id,
                     Status = h.Status.ToString(),
                     h.Observacao,
-                    h.DataRegistro
+                    DataRegistro = ComoUtc(
+                        h.DataRegistro)
                 })
         };
+    }
+    private static DateTime ComoUtc(
+        DateTime data)
+    {
+        return DateTime.SpecifyKind(
+            data,
+            DateTimeKind.Utc);
+    }
+
+    private static DateTime? ComoUtc(
+        DateTime? data)
+    {
+        return data.HasValue
+            ? DateTime.SpecifyKind(
+                data.Value,
+                DateTimeKind.Utc)
+            : null;
     }
 }

@@ -27,11 +27,5 @@ public class ItemOrcamentoDto
             "A quantidade deve ser maior que zero.")]
     public int Quantidade { get; set; }
 
-    [Range(
-        typeof(decimal),
-        "0",
-        "9999999999999999.99",
-        ErrorMessage =
-            "O valor unitário não pode ser negativo.")]
     public decimal ValorUnitario { get; set; }
 }

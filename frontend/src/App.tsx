@@ -14,6 +14,8 @@ import { NovaSolicitacao } from './pages/NovaSolicitacao'
 import { PerfilCliente } from './pages/PerfilCliente'
 import { PerfilTecnico } from './pages/PerfilTecnico'
 import { SolicitacoesTecnico } from './pages/SolicitacoesTecnico'
+import { Diagnosticos } from './pages/Diagnosticos'
+import { Orcamentos } from './pages/Orcamentos'
 
 function App() {
     const [pagina, setPagina] =
@@ -36,6 +38,14 @@ function App() {
 
             {pagina === 'solicitacoes-tecnico' && (
                 <SolicitacoesTecnico />
+            )}
+
+            {pagina === 'diagnosticos' && (
+                <Diagnosticos />
+            )}
+
+            {pagina === 'orcamentos' && (
+                <Orcamentos />
             )}
 
             {pagina === 'cadastro-tecnico' && (

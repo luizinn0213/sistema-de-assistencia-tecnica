@@ -107,9 +107,33 @@ public class DiagnosticosController : ControllerBase
 
             diagnostico.DescricaoDefeito,
             diagnostico.SolucaoRecomendada,
-            Status = diagnostico.Status.ToString(),
-            diagnostico.DataCriacao,
-            diagnostico.DataConclusao
+
+            Status =
+                diagnostico.Status.ToString(),
+
+            DataCriacao = ComoUtc(
+                diagnostico.DataCriacao),
+
+            DataConclusao = ComoUtc(
+                diagnostico.DataConclusao)
         };
+    }
+
+    private static DateTime ComoUtc(
+        DateTime data)
+    {
+        return DateTime.SpecifyKind(
+            data,
+            DateTimeKind.Utc);
+    }
+
+    private static DateTime? ComoUtc(
+        DateTime? data)
+    {
+        return data.HasValue
+            ? DateTime.SpecifyKind(
+                data.Value,
+                DateTimeKind.Utc)
+            : null;
     }
 }

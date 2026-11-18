@@ -13,6 +13,8 @@ export type Pagina =
     | 'perfil-cliente'
     | 'nova-solicitacao'
     | 'minhas-solicitacoes'
+    | 'diagnosticos'
+    | 'orcamentos'
 
 interface HeaderProps {
     paginaAtual: Pagina
@@ -192,6 +194,20 @@ export function Header({
                 >
                     Minhas solicitações
                 </button>
+
+                <button
+                    className={
+                        paginaAtual === 'diagnosticos'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('diagnosticos')
+                    }
+                >
+                    Diagnósticos
+                </button>
             </nav>
 
             <button
@@ -210,6 +226,20 @@ export function Header({
                 onClick={abrirPerfil}
             >
                 {iniciais}
+            </button>
+
+            <button
+                className={
+                    paginaAtual === 'orcamentos'
+                        ? 'ativo'
+                        : ''
+                }
+                type="button"
+                onClick={() =>
+                    aoNavegar('orcamentos')
+                }
+            >
+                Orçamentos
             </button>
         </header>
     )
