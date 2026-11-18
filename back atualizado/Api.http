@@ -1,0 +1,133 @@
+@host = http://localhost:5000
+
+### ---------------------------------------------------------
+### 1) LOGIN (administrador criado pelo seed)
+### ---------------------------------------------------------
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@assistencia.local",
+  "senha": "Admin@123456"
+}
+
+### ---------------------------------------------------------
+### 2) QUEM SOU EU (usuário identificado pelo token)
+### ---------------------------------------------------------
+@token = {{login.response.body.$.accessToken}}
+@refresh = {{login.response.body.$.refreshToken}}
+
+GET {{host}}/api/auth/eu
+Authorization: Bearer {{token}}
+
+### ---------------------------------------------------------
+### 3) CADASTRO DE CLIENTE (público, já devolve token)
+### ---------------------------------------------------------
+# @name cadastro
+POST {{host}}/api/clientes
+Content-Type: application/json
+
+{
+  "nome": "Maria Silva",
+  "email": "maria@exemplo.com",
+  "senha": "Senha@123",
+  "telefone": "(11) 99999-0000",
+  "cpfCnpj": "123.456.789-09",
+  "endereco": {
+    "cep": "01001-000",
+    "logradouro": "Praça da Sé",
+    "numero": "1",
+    "bairro": "Sé",
+    "cidade": "São Paulo",
+    "estado": "SP"
+  }
+}
+
+### ---------------------------------------------------------
+### 4) MEU PERFIL (perfil Cliente — id vem do token)
+### ---------------------------------------------------------
+@tokenCliente = {{cadastro.response.body.$.tokens.accessToken}}
+
+GET {{host}}/api/clientes/me
+Authorization: Bearer {{tokenCliente}}
+
+### ---------------------------------------------------------
+### 5) MEUS EQUIPAMENTOS / CADASTRAR EQUIPAMENTO
+### ---------------------------------------------------------
+GET {{host}}/api/equipamentos/meus
+Authorization: Bearer {{tokenCliente}}
+
+###
+
+POST {{host}}/api/equipamentos
+Content-Type: application/json
+Authorization: Bearer {{tokenCliente}}
+
+{
+  "tipo": "Notebook",
+  "marca": "Dell",
+  "modelo": "Inspiron 15",
+  "numeroSerie": "SN-123456"
+}
+
+### ---------------------------------------------------------
+### 6) LISTAGENS DA EQUIPE (Técnico/Administrador)
+### ---------------------------------------------------------
+GET {{host}}/api/clientes?busca=maria&pagina=1&tamanho=20
+Authorization: Bearer {{token}}
+
+###
+
+GET {{host}}/api/equipamentos?pagina=1&tamanho=20
+Authorization: Bearer {{token}}
+
+### ---------------------------------------------------------
+### 7) ADMIN — criar técnico, trocar perfil, desativar
+### ---------------------------------------------------------
+POST {{host}}/api/usuarios
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Carlos Técnico",
+  "email": "carlos@assistencia.local",
+  "senha": "Tecnico@123",
+  "telefone": "(11) 98888-7777",
+  "tipo": 2
+}
+
+###
+
+PUT {{host}}/api/usuarios/2/perfil
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tipo": 2
+}
+
+###
+
+PUT {{host}}/api/usuarios/2/status
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ativo": false
+}
+
+### ---------------------------------------------------------
+### 8) RENOVAR TOKEN E SAIR
+### ---------------------------------------------------------
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refresh}}"
+}
+
+###
+
+POST {{host}}/api/auth/logout
+Authorization: Bearer {{token}}

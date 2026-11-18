@@ -1,0 +1,22 @@
+frontend/
+├── package.json         ← ajustado (types do React)
+├── vite.config.ts       ← CRIAR (o atual é um package.json duplicado!)
+├── tsconfig.json        ← ajustado
+├── index.html           (mantém)
+└── src/
+    ├── main.tsx         ← reescrito (Router + AuthProvider)
+    ├── App.tsx          ← reescrito (rotas protegidas por perfil)
+    ├── api.ts           ← reescrito (interceptors JWT + refresh)
+    ├── auth.tsx         ← NOVO (contexto de autenticação)
+    ├── styles.css       ← NOVO
+    └── pages/
+        ├── Layout.tsx
+        ├── Login.tsx
+        ├── Cadastro.tsx
+        ├── Home.tsx
+        ├── MeuPerfil.tsx
+        ├── Clientes.tsx
+        ├── MeusEquipamentos.tsx
+        ├── Equipamentos.tsx
+        ├── Usuarios.tsx
+        └── TrocarSenha.tsx
