@@ -37,6 +37,22 @@ builder.Services.AddScoped<
     IOrcamentoService,
     OrcamentoService>();    
     
+builder.Services.AddScoped<
+    IExecucaoServicoRepository,
+    ExecucaoServicoRepository>();
+
+builder.Services.AddScoped<
+    IAvaliacaoRepository,
+    AvaliacaoRepository>();
+
+builder.Services.AddScoped<
+    IExecucaoServicoService,
+    ExecucaoServicoService>();
+
+builder.Services.AddScoped<
+    IAvaliacaoService,
+    AvaliacaoService>();
+
 // Registra o Entity Framework usando SQLite.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(

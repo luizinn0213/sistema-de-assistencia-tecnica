@@ -53,6 +53,16 @@ public class AppDbContext : DbContext
     public DbSet<HistoricoOrcamento> HistoricosOrcamento
         => Set<HistoricoOrcamento>();
         
+    public DbSet<ExecucaoServico> ExecucoesServicos
+        => Set<ExecucaoServico>();
+
+    public DbSet<HistoricoExecucaoServico>
+        HistoricosExecucoesServicos
+        => Set<HistoricoExecucaoServico>();
+
+    public DbSet<Avaliacao> Avaliacoes
+        => Set<Avaliacao>();
+
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
@@ -254,5 +264,73 @@ public class AppDbContext : DbContext
                 h.DataRegistro
             });
             
+        modelBuilder.Entity<ExecucaoServico>()
+            .HasOne(e => e.Orcamento)
+            .WithOne()
+            .HasForeignKey<ExecucaoServico>(
+                e => e.OrcamentoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ExecucaoServico>()
+            .HasIndex(e => e.OrcamentoId)
+            .IsUnique();
+
+        modelBuilder.Entity<ExecucaoServico>()
+            .HasMany(e => e.Historico)
+            .WithOne(h => h.ExecucaoServico)
+            .HasForeignKey(h => h.ExecucaoServicoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ExecucaoServico>()
+            .Navigation(e => e.Historico)
+            .UsePropertyAccessMode(
+                PropertyAccessMode.Field);
+
+        modelBuilder.Entity<ExecucaoServico>()
+            .Property(e => e.ObservacaoInicio)
+            .HasMaxLength(
+                ExecucaoServico.TamanhoMaximoObservacao);
+
+        modelBuilder.Entity<ExecucaoServico>()
+            .Property(e => e.ObservacaoFinal)
+            .HasMaxLength(
+                ExecucaoServico.TamanhoMaximoObservacao);
+
+        modelBuilder.Entity<HistoricoExecucaoServico>()
+            .Property(h => h.Observacao)
+            .HasMaxLength(
+                HistoricoExecucaoServico
+                    .TamanhoMaximoObservacao)
+            .IsRequired();
+
+        modelBuilder.Entity<HistoricoExecucaoServico>()
+            .HasIndex(h => new
+            {
+                h.ExecucaoServicoId,
+                h.DataRegistro
+            });
+
+        modelBuilder.Entity<Avaliacao>()
+            .HasOne(a => a.ExecucaoServico)
+            .WithOne()
+            .HasForeignKey<Avaliacao>(
+                a => a.ExecucaoServicoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Avaliacao>()
+            .HasIndex(a => a.ExecucaoServicoId)
+            .IsUnique();
+
+        modelBuilder.Entity<Avaliacao>()
+            .HasOne(a => a.Cliente)
+            .WithMany()
+            .HasForeignKey(a => a.ClienteId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Avaliacao>()
+            .Property(a => a.Comentario)
+            .HasMaxLength(
+                Avaliacao.TamanhoMaximoComentario);
+
     }
 }

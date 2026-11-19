@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import './execucao-avaliacao.css'
 import { Header } from './components/Header'
 import type { Pagina } from './components/Header'
 import { CadastroCliente } from './pages/CadastroCliente'
@@ -16,6 +17,7 @@ import { PerfilTecnico } from './pages/PerfilTecnico'
 import { SolicitacoesTecnico } from './pages/SolicitacoesTecnico'
 import { Diagnosticos } from './pages/Diagnosticos'
 import { Orcamentos } from './pages/Orcamentos'
+import { ExecucaoAvaliacao } from './pages/ExecucaoAvaliacao'
 
 function App() {
     const [pagina, setPagina] =
@@ -46,6 +48,10 @@ function App() {
 
             {pagina === 'orcamentos' && (
                 <Orcamentos />
+            )}
+
+            {pagina === 'execucao-avaliacao' && (
+                <ExecucaoAvaliacao />
             )}
 
             {pagina === 'cadastro-tecnico' && (

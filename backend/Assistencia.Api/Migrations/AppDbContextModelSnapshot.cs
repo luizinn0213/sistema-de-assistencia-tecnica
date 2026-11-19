@@ -17,6 +17,38 @@ namespace Assistencia.Api.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
+            modelBuilder.Entity("Assistencia.Api.Models.Avaliacao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Comentario")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DataAvaliacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ExecucaoServicoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Nota")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("ExecucaoServicoId")
+                        .IsUnique();
+
+                    b.ToTable("Avaliacoes");
+                });
+
             modelBuilder.Entity("Assistencia.Api.Models.Cliente", b =>
                 {
                     b.Property<int>("Id")
@@ -178,6 +210,70 @@ namespace Assistencia.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Especialidades");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.ExecucaoServico", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DataConclusao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DataInicio")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ObservacaoFinal")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ObservacaoInicio")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrcamentoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrcamentoId")
+                        .IsUnique();
+
+                    b.ToTable("ExecucoesServicos");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.HistoricoExecucaoServico", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DataRegistro")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ExecucaoServicoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Observacao")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExecucaoServicoId", "DataRegistro");
+
+                    b.ToTable("HistoricosExecucoesServicos");
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.HistoricoOrcamento", b =>
@@ -467,6 +563,25 @@ namespace Assistencia.Api.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("Assistencia.Api.Models.Avaliacao", b =>
+                {
+                    b.HasOne("Assistencia.Api.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Assistencia.Api.Models.ExecucaoServico", "ExecucaoServico")
+                        .WithOne()
+                        .HasForeignKey("Assistencia.Api.Models.Avaliacao", "ExecucaoServicoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("ExecucaoServico");
+                });
+
             modelBuilder.Entity("Assistencia.Api.Models.Cliente", b =>
                 {
                     b.HasOne("Assistencia.Api.Models.Usuario", "Usuario")
@@ -517,6 +632,28 @@ namespace Assistencia.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Cliente");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.ExecucaoServico", b =>
+                {
+                    b.HasOne("Assistencia.Api.Models.Orcamento", "Orcamento")
+                        .WithOne()
+                        .HasForeignKey("Assistencia.Api.Models.ExecucaoServico", "OrcamentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Orcamento");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.HistoricoExecucaoServico", b =>
+                {
+                    b.HasOne("Assistencia.Api.Models.ExecucaoServico", "ExecucaoServico")
+                        .WithMany("Historico")
+                        .HasForeignKey("ExecucaoServicoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ExecucaoServico");
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.HistoricoOrcamento", b =>
@@ -646,6 +783,11 @@ namespace Assistencia.Api.Migrations
             modelBuilder.Entity("Assistencia.Api.Models.Especialidade", b =>
                 {
                     b.Navigation("TecnicoEspecialidades");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.ExecucaoServico", b =>
+                {
+                    b.Navigation("Historico");
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.Orcamento", b =>
