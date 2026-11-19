@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import './App.css'
 import './execucao-avaliacao.css'
+import './matching-ranking.css'
+
 import { Header } from './components/Header'
 import type { Pagina } from './components/Header'
 import { CadastroCliente } from './pages/CadastroCliente'

@@ -6,6 +6,8 @@ using Assistencia.Api.Services;
 using Assistencia.Api.Services.Contracts;
 using Assistencia.Api.Filters;
 using Assistencia.Api.Security;
+using Assistencia.Api.Services.Matching;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +61,26 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<
+    IMatchingRepository,
+    MatchingRepository>();
+
+builder.Services.AddScoped<
+    IMatchingService,
+    MatchingService>();
+
+builder.Services.AddScoped<
+    ICriterioPontuacaoMatching,
+    CriterioEspecialidade>();
+
+builder.Services.AddScoped<
+    ICriterioPontuacaoMatching,
+    CriterioExperiencia>();
+
+builder.Services.AddScoped<
+    ICriterioPontuacaoMatching,
+    CriterioLocalizacao>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
@@ -71,6 +93,11 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AdicionarAutenticacaoJwt(builder.Configuration);
+builder.Services.AddScoped<IMatchingRepository, MatchingRepository>();
+builder.Services.AddScoped<IMatchingService, MatchingService>();
+builder.Services.AddScoped<ICriterioPontuacaoMatching, CriterioEspecialidade>();
+builder.Services.AddScoped<ICriterioPontuacaoMatching, CriterioExperiencia>();
+builder.Services.AddScoped<ICriterioPontuacaoMatching, CriterioLocalizacao>();
 
 var app = builder.Build();
 
