@@ -5,6 +5,7 @@ using Assistencia.Api.Repositories.Contracts;
 using Assistencia.Api.Services;
 using Assistencia.Api.Services.Contracts;
 using Assistencia.Api.Filters;
+using Assistencia.Api.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +69,8 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+builder.Services.AdicionarAutenticacaoJwt(builder.Configuration);
 
 var app = builder.Build();
 

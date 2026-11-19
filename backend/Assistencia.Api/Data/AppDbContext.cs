@@ -63,6 +63,9 @@ public class AppDbContext : DbContext
     public DbSet<Avaliacao> Avaliacoes
         => Set<Avaliacao>();
 
+    public DbSet<RefreshToken> RefreshTokens
+        => Set<RefreshToken>();
+
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
@@ -331,6 +334,18 @@ public class AppDbContext : DbContext
             .Property(a => a.Comentario)
             .HasMaxLength(
                 Avaliacao.TamanhoMaximoComentario);
+
+        var refreshToken = modelBuilder.Entity<RefreshToken>();
+
+        refreshToken.HasOne(t => t.Usuario)
+            .WithMany()
+            .HasForeignKey(t => t.UsuarioId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        refreshToken.HasIndex(t => t.TokenHash).IsUnique();
+        refreshToken.Property(t => t.TokenHash).HasMaxLength(64).IsRequired();
+        refreshToken.Property(t => t.SubstituidoPorHash).HasMaxLength(64);
+        refreshToken.Ignore(t => t.Ativo);
 
     }
 }

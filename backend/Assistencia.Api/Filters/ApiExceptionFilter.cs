@@ -22,6 +22,10 @@ public class ApiExceptionFilter : IExceptionFilter
                 StatusCodes.Status409Conflict,
                 erro.Message),
 
+            UnauthorizedAccessException erro => CriarResultado(
+                StatusCodes.Status401Unauthorized,
+                erro.Message),
+
             _ => null
         };
 

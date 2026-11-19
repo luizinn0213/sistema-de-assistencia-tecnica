@@ -18,6 +18,7 @@ import { SolicitacoesTecnico } from './pages/SolicitacoesTecnico'
 import { Diagnosticos } from './pages/Diagnosticos'
 import { Orcamentos } from './pages/Orcamentos'
 import { ExecucaoAvaliacao } from './pages/ExecucaoAvaliacao'
+import { TrocarSenha } from './pages/TrocarSenha'
 
 function App() {
     const [pagina, setPagina] =
@@ -76,6 +77,10 @@ function App() {
 
             {pagina === 'login' && (
                 <Login />
+            )}
+
+            {pagina === 'trocar-senha' && (
+                <TrocarSenha />
             )}
 
             {pagina === 'perfil-cliente' && (

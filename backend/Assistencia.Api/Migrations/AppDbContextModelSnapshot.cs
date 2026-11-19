@@ -389,6 +389,43 @@ namespace Assistencia.Api.Migrations
                     b.ToTable("Orcamentos");
                 });
 
+            modelBuilder.Entity("Assistencia.Api.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DataExpiracao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DataRevogacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SubstituidoPorHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("Assistencia.Api.Models.SelecaoTecnico", b =>
                 {
                     b.Property<int>("Id")
@@ -698,6 +735,17 @@ namespace Assistencia.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Diagnostico");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.RefreshToken", b =>
+                {
+                    b.HasOne("Assistencia.Api.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.SelecaoTecnico", b =>

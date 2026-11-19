@@ -16,6 +16,8 @@ export type Pagina =
     | 'diagnosticos'
     | 'orcamentos'
     | 'execucao-avaliacao'
+    | 'trocar-senha'
+
 interface HeaderProps {
     paginaAtual: Pagina
     aoNavegar: (pagina: Pagina) => void
@@ -255,6 +257,16 @@ export function Header({
             >
                 Execução e avaliação
             </button>
+
+            {sessao && (
+                <button
+                    type="button"
+                    className={paginaAtual === 'trocar-senha' ? 'ativo' : ''}
+                    onClick={() => aoNavegar('trocar-senha')}
+                >
+                    Trocar senha
+                </button>
+            )}
 
         </header>
     )

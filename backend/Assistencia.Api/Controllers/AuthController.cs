@@ -1,7 +1,8 @@
-using Assistencia.Api.Data;
 using Assistencia.Api.Dtos;
+using Assistencia.Api.Security;
+using Assistencia.Api.Services.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Assistencia.Api.Controllers;
 
@@ -9,47 +10,84 @@ namespace Assistencia.Api.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IAutenticacaoService _autenticacaoService;
+    private readonly IUsuarioAtual _usuarioAtual;
 
-    public AuthController(AppDbContext context)
+    public AuthController(
+        IAutenticacaoService autenticacaoService,
+        IUsuarioAtual usuarioAtual)
     {
-        _context = context;
+        _autenticacaoService = autenticacaoService;
+        _usuarioAtual = usuarioAtual;
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<ActionResult> Login(LoginDto dados)
+    public async Task<ActionResult> Login(
+        LoginDto dados,
+        CancellationToken cancellationToken)
     {
-        var email = dados.Email
-            .Trim()
-            .ToLowerInvariant();
+        var resposta = await _autenticacaoService.LoginAsync(
+            dados,
+            cancellationToken);
+        return Ok(resposta);
+    }
 
-        var usuario = await _context.Usuarios
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Email == email);
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<ActionResult> Refresh(
+        RefreshTokenDto dados,
+        CancellationToken cancellationToken)
+    {
+        var resposta = await _autenticacaoService.RenovarAsync(
+            dados.RefreshToken,
+            cancellationToken);
+        return Ok(resposta);
+    }
 
-        if (usuario is null ||
-            !BCrypt.Net.BCrypt.Verify(
-                dados.Senha,
-                usuario.SenhaHash))
-        {
-            return BadRequest(new
-            {
-                erro = "E-mail ou senha inválidos."
-            });
-        }
+    [Authorize]
+    [HttpGet("eu")]
+    public async Task<ActionResult> Eu(
+        CancellationToken cancellationToken)
+    {
+        var usuarioId = ObterUsuarioId();
+        var resposta = await _autenticacaoService.ObterSessaoAsync(
+            usuarioId,
+            cancellationToken);
+        return Ok(resposta);
+    }
 
-        var clienteId = await _context.Clientes
-            .Where(c => c.UsuarioId == usuario.Id)
-            .Select(c => (int?)c.Id)
-            .FirstOrDefaultAsync();
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<ActionResult> Logout(
+        CancellationToken cancellationToken)
+    {
+        await _autenticacaoService.LogoutAsync(
+            ObterUsuarioId(),
+            cancellationToken);
+        return Ok(new { mensagem = "Sessão encerrada com sucesso." });
+    }
 
+    [Authorize]
+    [HttpPut("senha")]
+    public async Task<ActionResult> TrocarSenha(
+        TrocarSenhaDto dados,
+        CancellationToken cancellationToken)
+    {
+        await _autenticacaoService.TrocarSenhaAsync(
+            ObterUsuarioId(),
+            dados,
+            cancellationToken);
         return Ok(new
         {
-            usuario.Id,
-            usuario.Nome,
-            usuario.Email,
-            Tipo = usuario.Tipo.ToString(),
-            ClienteId = clienteId
+            mensagem = "Senha alterada. Entre novamente com a nova senha."
         });
+    }
+
+    private int ObterUsuarioId()
+    {
+        return _usuarioAtual.UsuarioId
+            ?? throw new UnauthorizedAccessException(
+                "Token sem identificação de usuário.");
     }
 }
