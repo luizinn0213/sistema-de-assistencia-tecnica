@@ -10,3 +10,12 @@ export interface LoginDados {
     email: string
     senha: string
 }
+
+export interface RespostaAutenticacao {
+    accessToken: string
+    tokenType: string
+    accessTokenExpiraEm: string
+    refreshToken: string
+    refreshTokenExpiraEm: string
+    usuario: SessaoUsuario
+}

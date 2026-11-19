@@ -6,15 +6,26 @@ import {
     listarSelecoesPendentes,
     recusarSelecao
 } from '../services/matchingApi'
+import { obterSessao } from '../services/authApi'
 import { listarTecnicos } from '../services/tecnicosApi'
 import type {
     HistoricoSelecao,
     SelecaoTecnico
 } from '../types/Matching'
-import type { Tecnico } from '../types/Tecnico'
 
-export function SolicitacoesTecnico() {
-    const [tecnicos, setTecnicos] = useState<Tecnico[]>([])
+export function SolicitacoesTecnico({ aoDiagnosticar }: { aoDiagnosticar: (id: number) => void }) {
+    const sessao = obterSessao()
+    if (sessao?.tipo !== 'Tecnico') {
+        return <main className="pagina-conteudo"><p>Entre como técnico para ver suas solicitações.</p></main>
+    }
+
+    return <SolicitacoesRecebidas key={sessao.id} usuarioTecnicoId={sessao.id} aoDiagnosticar={aoDiagnosticar} />
+}
+
+function SolicitacoesRecebidas({ usuarioTecnicoId, aoDiagnosticar }: {
+    usuarioTecnicoId: number
+    aoDiagnosticar: (id: number) => void
+}) {
     const [tecnicoId, setTecnicoId] = useState(0)
     const [selecoes, setSelecoes] =
         useState<SelecaoTecnico[]>([])
@@ -24,6 +35,7 @@ export function SolicitacoesTecnico() {
     const [selecaoRecusadaId, setSelecaoRecusadaId] =
         useState<number | null>(null)
     const [motivo, setMotivo] = useState('')
+    const [solicitacaoAceita, setSolicitacaoAceita] = useState<number>()
     const [carregando, setCarregando] = useState(true)
     const [processandoId, setProcessandoId] =
         useState<number | null>(null)
@@ -34,31 +46,29 @@ export function SolicitacoesTecnico() {
     } | null>(null)
 
     useEffect(() => {
-        listarTecnicos()
-            .then((dados) => {
-                setTecnicos(dados)
+        let ativo = true
 
-                if (dados.length > 0) {
-                    setTecnicoId(dados[0].id)
-                }
-            })
-            .catch(() => {
-                setToast({
-                    mensagem:
-                        'Não foi possível carregar os técnicos.',
-                    tipo: 'erro'
-                })
-            })
-            .finally(() => {
-                setCarregando(false)
-            })
-    }, [])
+        async function carregar() {
+            try {
+                const perfis = await listarTecnicos()
+                if (!ativo) return
 
-    useEffect(() => {
-        if (tecnicoId > 0) {
-            carregarPendentes(tecnicoId)
+                const perfil = perfis.find(item => item.usuarioId === usuarioTecnicoId)
+                if (!perfil) return
+
+                setTecnicoId(perfil.id)
+                const dados = await listarSelecoesPendentes(perfil.id)
+                if (ativo) setSelecoes(dados)
+            } catch {
+                if (ativo) setToast({ mensagem: 'Não foi possível carregar suas solicitações.', tipo: 'erro' })
+            } finally {
+                if (ativo) setCarregando(false)
+            }
         }
-    }, [tecnicoId])
+
+        void carregar()
+        return () => { ativo = false }
+    }, [usuarioTecnicoId])
 
     async function carregarPendentes(id: number) {
         try {
@@ -97,13 +107,14 @@ export function SolicitacoesTecnico() {
         }
     }
 
-    async function aceitar(selecaoId: number) {
-        setProcessandoId(selecaoId)
+    async function aceitar(selecao: SelecaoTecnico) {
+        setProcessandoId(selecao.id)
 
         try {
-            await aceitarSelecao(selecaoId)
+            await aceitarSelecao(selecao.id)
+            setSolicitacaoAceita(selecao.solicitacaoId)
             await carregarPendentes(tecnicoId)
-            await mostrarHistorico(selecaoId)
+            await mostrarHistorico(selecao.id)
 
             setToast({
                 mensagem: 'Solicitação aceita com sucesso.',
@@ -186,47 +197,25 @@ export function SolicitacoesTecnico() {
             </div>
 
             <section className="conteudo-solicitacoes">
-                <label className="seletor-demonstracao">
-                    Técnico utilizado na demonstração
-
-                    <select
-                        value={tecnicoId}
-                        onChange={(evento) => {
-                            setTecnicoId(
-                                Number(evento.target.value)
-                            )
-                            setHistorico([])
-                            setSelecaoRecusadaId(null)
-                        }}
-                    >
-                        {tecnicos.map((tecnico) => (
-                            <option
-                                key={tecnico.id}
-                                value={tecnico.id}
-                            >
-                                {tecnico.nomeExibicao}
-                            </option>
-                        ))}
-                    </select>
-
-                    <small>
-                        Esse seletor será removido quando o login
-                        do técnico estiver integrado.
-                    </small>
-                </label>
-
-                {tecnicos.length === 0 && (
-                    <p className="estado-vazio">
-                        Nenhum técnico cadastrado.
-                    </p>
+                {tecnicoId === 0 && !toast && (
+                    <p className="estado-vazio">Sua conta ainda não tem um perfil técnico.</p>
                 )}
 
-                {tecnicos.length > 0 &&
-                    selecoes.length === 0 && (
+                {tecnicoId > 0 && selecoes.length === 0 && (
                         <p className="estado-vazio">
                             Nenhuma solicitação aguardando resposta.
                         </p>
                     )}
+
+                {solicitacaoAceita && (
+                    <button
+                        className="botao-principal"
+                        type="button"
+                        onClick={() => aoDiagnosticar(solicitacaoAceita)}
+                    >
+                        Ir para diagnóstico
+                    </button>
+                )}
 
                 <div className="lista-solicitacoes">
                     {selecoes.map((selecao) => (
@@ -237,8 +226,7 @@ export function SolicitacoesTecnico() {
                             <div className="topo-solicitacao">
                                 <div>
                                     <span>
-                                        Solicitação #
-                                        {selecao.solicitacaoId}
+                                        {selecao.solicitacaoNumero ?? 'Solicitação recebida'}
                                     </span>
 
                                     <h2>
@@ -266,7 +254,7 @@ export function SolicitacoesTecnico() {
                                         processandoId === selecao.id
                                     }
                                     onClick={() =>
-                                        aceitar(selecao.id)
+                                        aceitar(selecao)
                                     }
                                 >
                                     Aceitar
@@ -285,7 +273,7 @@ export function SolicitacoesTecnico() {
                                         setMotivo('')
                                     }}
                                 >
-                                    Recusar
+                                    Iniciar recusa
                                 </button>
 
                                 <button

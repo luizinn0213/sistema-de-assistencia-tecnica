@@ -22,3 +22,10 @@ export interface CriarSolicitacaoDados {
     especialidadeId: number
     descricaoProblema: string
 }
+
+export interface HistoricoSolicitacao {
+    id: number
+    statusAnterior: string
+    novoStatus: string
+    dataAlteracao: string
+}

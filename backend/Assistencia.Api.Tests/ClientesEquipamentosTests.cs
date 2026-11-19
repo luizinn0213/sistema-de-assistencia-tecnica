@@ -6,6 +6,11 @@ using Assistencia.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Assistencia.Api.Repositories;
+using Assistencia.Api.Security;
+using Assistencia.Api.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Assistencia.Api.Tests;
 
@@ -133,16 +138,39 @@ public class ClientesEquipamentosTests
         banco.Context.Usuarios.Add(usuario);
         await banco.Context.SaveChangesAsync();
 
-        var controller = new AuthController(banco.Context);
+        var tokenService = new TokenService(
+            Options.Create(new JwtOptions
+            {
+                Chave = "chave-exclusiva-do-teste-com-mais-de-32-bytes"
+            }));
+
+        var autenticacaoService = new AutenticacaoService(
+            new AutenticacaoRepository(banco.Context),
+            tokenService);
+
+        var controller = new AuthController(
+            autenticacaoService,
+            new UsuarioAtual(new HttpContextAccessor()));
 
         var resultado = await controller.Login(
             new LoginDto
             {
                 Email = "cliente@email.com",
                 Senha = "123456"
-            });
+            },
+            CancellationToken.None);
 
-        Assert.IsType<OkObjectResult>(resultado);
+        var ok = Assert.IsType<OkObjectResult>(resultado);
+        var sessao = Assert.IsType<AutenticacaoRespostaDto>(ok.Value);
+
+        Assert.Equal(usuario.Id, sessao.Usuario.Id);
+        Assert.NotEmpty(sessao.AccessToken);
+        Assert.NotEmpty(sessao.RefreshToken);
+
+        var tokenSalvo = await banco.Context.RefreshTokens.SingleAsync();
+        Assert.Equal(
+            tokenService.CalcularHash(sessao.RefreshToken),
+            tokenSalvo.TokenHash);
     }
 
     private static async Task<Cliente> CriarCliente(

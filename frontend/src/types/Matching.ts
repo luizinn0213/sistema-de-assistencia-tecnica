@@ -1,21 +1,22 @@
-export interface TecnicoCompativel {
+export interface TecnicoRanking {
     id: number
     nomeExibicao: string
     descricaoProfissional: string
     cidadeAtendimento: string
     estadoAtendimento: string
-    disponivel: boolean
     especialidadeId: number
     especialidade: string
-    nivelExperiencia: string
+    nivelExperiencia: number | string
     anosExperiencia: number
     mesmaCidade: boolean
     pontuacao: number
+    destaques: string[]
 }
 
 export interface SelecaoTecnico {
     id: number
     solicitacaoId: number
+    solicitacaoNumero?: string
     tecnicoId: number
     tecnico?: string
     especialidadeId: number

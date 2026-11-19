@@ -1,0 +1,60 @@
+/* Complemento exclusivo da tela de ranking. Importar depois de App.css. */
+
+.cartao-tecnico-matching {
+    position: relative;
+    padding-top: 42px;
+}
+
+.posicao-ranking {
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    color: #526477;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.cartao-tecnico-matching.melhor-opcao {
+    border: 2px solid #12829f;
+    background: linear-gradient(180deg, #f4fbfd 0%, #ffffff 100%);
+}
+
+.selo-melhor-opcao {
+    display: inline-block;
+    margin-bottom: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #0c6f89;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.detalhes-matching .etiqueta.destaque {
+    border: 1px solid #b9e5ee;
+    background: #e8f8fb;
+    color: #08728e;
+    font-weight: 650;
+}
+
+.pontuacao-matching {
+    flex: 0 0 auto;
+    border: 1px solid #b9e5ee;
+    border-radius: 999px;
+    background: #e8f8fb;
+    color: #08728e;
+    font-weight: 800;
+}
+
+@media (max-width: 640px) {
+    .cartao-tecnico-matching {
+        padding-top: 42px;
+    }
+
+    .posicao-ranking {
+        left: 12px;
+    }
+}

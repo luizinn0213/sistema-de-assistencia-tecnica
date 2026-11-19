@@ -19,7 +19,8 @@ export interface Tecnico {
 }
 
 export interface CriarTecnico {
-  usuarioId: number
+  email: string
+  senha: string
   nomeExibicao: string
   descricaoProfissional: string
   cidadeAtendimento: string

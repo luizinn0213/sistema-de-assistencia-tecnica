@@ -1,5 +1,6 @@
 using Assistencia.Api.Data;
 using Assistencia.Api.Dtos;
+using Assistencia.Api.Enums;
 using Assistencia.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -121,6 +122,80 @@ public class SolicitacoesController : ControllerBase
             return BadRequest(new { erro = erro.Message });
         }
         catch (ArgumentException erro)
+        {
+            return BadRequest(new { erro = erro.Message });
+        }
+    }
+
+    [HttpGet("cliente/{clienteId:int}/{id:int}/historico")]
+    public async Task<ActionResult> ListarHistorico(
+        int clienteId,
+        int id)
+    {
+        var solicitacaoExiste = await _context.Solicitacoes
+            .AnyAsync(s =>
+                s.Id == id &&
+                s.ClienteId == clienteId);
+
+        if (!solicitacaoExiste)
+        {
+            return NotFound(
+                new { erro = "Solicitação não encontrada." });
+        }
+
+        var historico = await _context.HistoricosSolicitacoes
+            .AsNoTracking()
+            .Where(h => h.SolicitacaoId == id)
+            .OrderBy(h => h.DataAlteracao)
+            .ThenBy(h => h.Id)
+            .ToListAsync();
+
+        return Ok(historico.Select(h => new
+        {
+            h.Id,
+            h.SolicitacaoId,
+            StatusAnterior = h.StatusAnterior.ToString(),
+            NovoStatus = h.NovoStatus.ToString(),
+
+            DataAlteracao = DateTime.SpecifyKind(
+                h.DataAlteracao,
+                DateTimeKind.Utc)
+        }).ToList());
+    }
+
+    [HttpPost("cliente/{clienteId:int}/{id:int}/cancelar")]
+    public async Task<ActionResult> Cancelar(
+        int clienteId,
+        int id)
+    {
+        var solicitacao = await _context.Solicitacoes
+            .Include(s => s.Equipamento)
+            .Include(s => s.Especialidade)
+            .FirstOrDefaultAsync(s =>
+                s.Id == id &&
+                s.ClienteId == clienteId);
+
+        if (solicitacao is null)
+        {
+            return NotFound(
+                new { erro = "Solicitação não encontrada." });
+        }
+
+        if (await _context.ExecucoesServicos.AnyAsync(e =>
+            e.Orcamento!.Diagnostico!.SolicitacaoId == id &&
+            e.Status != StatusExecucaoServico.AguardandoInicio))
+        {
+            return BadRequest(new { erro = "Não é possível cancelar esta solicitação." });
+        }
+
+        try
+        {
+            solicitacao.Cancelar();
+            await _context.SaveChangesAsync();
+
+            return Ok(CriarResposta(solicitacao));
+        }
+        catch (InvalidOperationException erro)
         {
             return BadRequest(new { erro = erro.Message });
         }

@@ -4,14 +4,15 @@ import { cadastrarTecnico } from '../services/tecnicosApi'
 import type { CriarTecnico } from '../types/Tecnico'
 
 const dadosIniciais: CriarTecnico = {
-  usuarioId: 0,
+  email: '',
+  senha: '',
   nomeExibicao: '',
   descricaoProfissional: '',
   cidadeAtendimento: '',
   estadoAtendimento: ''
 }
 
-export function CadastroTecnico() {
+export function CadastroTecnico({ aoEntrar }: { aoEntrar: () => void }) {
   const [dados, setDados] =
     useState<CriarTecnico>(dadosIniciais)
 
@@ -57,7 +58,7 @@ export function CadastroTecnico() {
         <h1>Cadastrar técnico</h1>
 
         <p>
-          Informe os dados que serão exibidos aos clientes.
+          Crie seu acesso e preencha os dados do seu perfil profissional.
         </p>
       </div>
 
@@ -65,25 +66,6 @@ export function CadastroTecnico() {
         className="formulario"
         onSubmit={enviarFormulario}
       >
-        <label>
-          ID do usuário
-          <input
-            type="number"
-            min="1"
-            required
-            value={dados.usuarioId || ''}
-            onChange={(evento) =>
-              setDados({
-                ...dados,
-                usuarioId: Number(evento.target.value)
-              })
-            }
-          />
-          <small>
-            Temporário até a integração com o login.
-          </small>
-        </label>
-
         <label>
           Nome de exibição
           <input
@@ -95,6 +77,33 @@ export function CadastroTecnico() {
                 ...dados,
                 nomeExibicao: evento.target.value
               })
+            }
+          />
+        </label>
+
+        <label>
+          E-mail
+          <input
+            type="email"
+            autoComplete="email"
+            required
+            value={dados.email}
+            onChange={(evento) =>
+              setDados({ ...dados, email: evento.target.value })
+            }
+          />
+        </label>
+
+        <label>
+          Senha
+          <input
+            type="password"
+            autoComplete="new-password"
+            minLength={6}
+            required
+            value={dados.senha}
+            onChange={(evento) =>
+              setDados({ ...dados, senha: evento.target.value })
             }
           />
         </label>
@@ -137,6 +146,7 @@ export function CadastroTecnico() {
             <input
               type="text"
               required
+              minLength={2}
               maxLength={2}
               placeholder="RJ"
               value={dados.estadoAtendimento}
@@ -152,7 +162,12 @@ export function CadastroTecnico() {
         </div>
 
         {mensagem && (
-          <p className="mensagem sucesso">{mensagem}</p>
+          <>
+            <p className="mensagem sucesso">{mensagem}</p>
+            <button className="botao-secundario" type="button" onClick={aoEntrar}>
+              Entrar na conta
+            </button>
+          </>
         )}
 
         {erro && (

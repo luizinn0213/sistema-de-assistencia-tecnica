@@ -1,18 +1,85 @@
 using Assistencia.Api.Data;
 using Microsoft.EntityFrameworkCore;
+using Assistencia.Api.Repositories;
+using Assistencia.Api.Repositories.Contracts;
+using Assistencia.Api.Services;
+using Assistencia.Api.Services.Contracts;
+using Assistencia.Api.Filters;
+using Assistencia.Api.Security;
+using Assistencia.Api.Services.Matching;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Registra os controllers da API.
-builder.Services.AddControllers();
+builder.Services.AddControllers(opcoes =>
+{
+    opcoes.Filters.Add<ApiExceptionFilter>();
+});
 
 // Registra a documentação OpenAPI.
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<
+    IDiagnosticoRepository,
+    DiagnosticoRepository>();
+
+builder.Services.AddScoped<
+    ISelecaoTecnicoRepository,
+    SelecaoTecnicoRepository>();
+
+builder.Services.AddScoped<
+    IDiagnosticoService,
+    DiagnosticoService>();
+
+builder.Services.AddScoped<
+    IOrcamentoRepository,
+    OrcamentoRepository>();
+    
+builder.Services.AddScoped<
+    IOrcamentoService,
+    OrcamentoService>();    
+    
+builder.Services.AddScoped<
+    IExecucaoServicoRepository,
+    ExecucaoServicoRepository>();
+
+builder.Services.AddScoped<
+    IAvaliacaoRepository,
+    AvaliacaoRepository>();
+
+builder.Services.AddScoped<
+    IExecucaoServicoService,
+    ExecucaoServicoService>();
+
+builder.Services.AddScoped<
+    IAvaliacaoService,
+    AvaliacaoService>();
 
 // Registra o Entity Framework usando SQLite.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<
+    IMatchingRepository,
+    MatchingRepository>();
+
+builder.Services.AddScoped<
+    IMatchingService,
+    MatchingService>();
+
+builder.Services.AddScoped<
+    ICriterioPontuacaoMatching,
+    CriterioEspecialidade>();
+
+builder.Services.AddScoped<
+    ICriterioPontuacaoMatching,
+    CriterioExperiencia>();
+
+builder.Services.AddScoped<
+    ICriterioPontuacaoMatching,
+    CriterioLocalizacao>();
 
 builder.Services.AddCors(options =>
 {
@@ -24,6 +91,8 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+builder.Services.AdicionarAutenticacaoJwt(builder.Configuration);
 
 var app = builder.Build();
 

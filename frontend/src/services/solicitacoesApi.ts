@@ -1,5 +1,6 @@
 import type {
     CriarSolicitacaoDados,
+    HistoricoSolicitacao,
     Solicitacao
 } from '../types/Solicitacao'
 
@@ -72,5 +73,27 @@ export async function listarSolicitacoes(
         throw new Error(await obterErro(resposta))
     }
 
+    return resposta.json()
+}
+
+export async function listarHistoricoSolicitacao(
+    clienteId: number,
+    solicitacaoId: number
+): Promise<HistoricoSolicitacao[]> {
+    const resposta = await fetch(`${API_URL}/cliente/${clienteId}/${solicitacaoId}/historico`)
+
+    if (!resposta.ok) throw new Error(await obterErro(resposta))
+    return resposta.json()
+}
+
+export async function cancelarSolicitacao(
+    clienteId: number,
+    solicitacaoId: number
+): Promise<Solicitacao> {
+    const resposta = await fetch(`${API_URL}/cliente/${clienteId}/${solicitacaoId}/cancelar`, {
+        method: 'POST'
+    })
+
+    if (!resposta.ok) throw new Error(await obterErro(resposta))
     return resposta.json()
 }

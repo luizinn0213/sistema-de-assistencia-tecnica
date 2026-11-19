@@ -1,4 +1,5 @@
-import { obterSessao } from '../services/authApi'
+import { encerrarSessao } from '../services/authApi'
+import type { SessaoUsuario } from '../types/Sessao'
 
 export type Pagina =
     | 'tecnicos'
@@ -13,18 +14,22 @@ export type Pagina =
     | 'perfil-cliente'
     | 'nova-solicitacao'
     | 'minhas-solicitacoes'
+    | 'diagnosticos'
+    | 'orcamentos'
+    | 'execucao-avaliacao'
+    | 'trocar-senha'
 
 interface HeaderProps {
     paginaAtual: Pagina
+    sessao: SessaoUsuario | null
     aoNavegar: (pagina: Pagina) => void
 }
 
 export function Header({
     paginaAtual,
+    sessao,
     aoNavegar
 }: HeaderProps) {
-    const sessao = obterSessao()
-
     const iniciais = sessao
         ? sessao.nome
               .split(' ')
@@ -36,9 +41,9 @@ export function Header({
         : 'EN'
 
     function abrirPerfil() {
-        const sessaoAtual = obterSessao()
-
-        if (sessaoAtual?.clienteId) {
+        if (sessao?.tipo === 'Tecnico') {
+            aoNavegar('perfil-tecnico')
+        } else if (sessao?.clienteId) {
             aoNavegar('perfil-cliente')
         } else {
             aoNavegar('login')
@@ -148,7 +153,7 @@ export function Header({
                         aoNavegar('cadastro-cliente')
                     }
                 >
-                    Criar conta
+                    Criar conta de cliente
                 </button>
 
                 <button
@@ -192,6 +197,20 @@ export function Header({
                 >
                     Minhas solicitações
                 </button>
+
+                <button
+                    className={
+                        paginaAtual === 'diagnosticos'
+                            ? 'ativo'
+                            : ''
+                    }
+                    type="button"
+                    onClick={() =>
+                        aoNavegar('diagnosticos')
+                    }
+                >
+                    Diagnósticos
+                </button>
             </nav>
 
             <button
@@ -211,6 +230,56 @@ export function Header({
             >
                 {iniciais}
             </button>
+
+            <button
+                className={
+                    paginaAtual === 'orcamentos'
+                        ? 'ativo'
+                        : ''
+                }
+                type="button"
+                onClick={() =>
+                    aoNavegar('orcamentos')
+                }
+            >
+                Orçamentos
+            </button>
+
+            <button
+                className={
+                    paginaAtual === 'execucao-avaliacao'
+                        ? 'ativo'
+                        : ''
+                }
+                type="button"
+                onClick={() =>
+                    aoNavegar('execucao-avaliacao')
+                }
+            >
+                Execução e avaliação
+            </button>
+
+            {sessao && (
+                <button
+                    type="button"
+                    className={paginaAtual === 'trocar-senha' ? 'ativo' : ''}
+                    onClick={() => aoNavegar('trocar-senha')}
+                >
+                    Trocar senha
+                </button>
+            )}
+
+            {sessao?.tipo === 'Tecnico' && (
+                <button
+                    type="button"
+                    onClick={() => {
+                        void encerrarSessao().finally(() => window.location.reload())
+                            .catch(() => {})
+                    }}
+                >
+                    Sair da conta
+                </button>
+            )}
         </header>
     )
 }

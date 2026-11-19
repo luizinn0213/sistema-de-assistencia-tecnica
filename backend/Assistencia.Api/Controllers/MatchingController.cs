@@ -4,6 +4,8 @@ using Assistencia.Api.Enums;
 using Assistencia.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Assistencia.Api.Dtos.Matching;
+using Assistencia.Api.Services.Contracts;
 
 namespace Assistencia.Api.Controllers;
 
@@ -12,75 +14,37 @@ namespace Assistencia.Api.Controllers;
 public class MatchingController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IMatchingService _matchingService;
 
-    public MatchingController(AppDbContext context)
+    public MatchingController(
+        AppDbContext context,
+        IMatchingService matchingService)
     {
         _context = context;
+        _matchingService = matchingService;
     }
 
     [HttpGet("tecnicos")]
-    public async Task<ActionResult> BuscarTecnicos(
-        int especialidadeId,
-        string? cidade = null)
+    public async Task<ActionResult<List<TecnicoRankingDto>>> BuscarTecnicos(
+        [FromQuery] int especialidadeId,
+        [FromQuery] string? cidade = null,
+        [FromQuery] int? solicitacaoId = null,
+        CancellationToken cancellationToken = default)
     {
-        var tecnicos = await _context.Tecnicos
-            .Include(t => t.TecnicoEspecialidades)
-            .ThenInclude(te => te.Especialidade)
-            .AsNoTracking()
-            .Where(t =>
-                t.Ativo &&
-                t.Disponivel &&
-                t.TecnicoEspecialidades.Any(te =>
-                    te.EspecialidadeId == especialidadeId &&
-                    te.Especialidade != null &&
-                    te.Especialidade.Ativa))
-            .ToListAsync();
+        if (especialidadeId <= 0)
+        {
+            return BadRequest(
+                "Informe uma especialidade válida.");
+        }
 
-        var resultado = tecnicos
-            .Select(tecnico =>
-            {
-                var vinculo = tecnico.TecnicoEspecialidades
-                    .First(te =>
-                        te.EspecialidadeId == especialidadeId);
+        var ranking =
+            await _matchingService.GerarRankingAsync(
+                especialidadeId,
+                cidade,
+                solicitacaoId,
+                cancellationToken);
 
-                var mesmaCidade =
-                    !string.IsNullOrWhiteSpace(cidade) &&
-                    string.Equals(
-                        tecnico.CidadeAtendimento,
-                        cidade,
-                        StringComparison.OrdinalIgnoreCase);
-
-                var pontuacao =
-                    50 +
-                    ((int)vinculo.NivelExperiencia * 10) +
-                    Math.Min(vinculo.AnosExperiencia, 10) +
-                    (mesmaCidade ? 30 : 0);
-
-                return new
-                {
-                    tecnico.Id,
-                    tecnico.NomeExibicao,
-                    tecnico.DescricaoProfissional,
-                    tecnico.CidadeAtendimento,
-                    tecnico.EstadoAtendimento,
-                    tecnico.Disponivel,
-
-                    EspecialidadeId = vinculo.EspecialidadeId,
-                    Especialidade = vinculo.Especialidade!.Nome,
-
-                    NivelExperiencia =
-                        vinculo.NivelExperiencia.ToString(),
-
-                    vinculo.AnosExperiencia,
-                    MesmaCidade = mesmaCidade,
-                    Pontuacao = pontuacao
-                };
-            })
-            .OrderByDescending(t => t.Pontuacao)
-            .ThenBy(t => t.NomeExibicao)
-            .ToList();
-
-        return Ok(resultado);
+        return Ok(ranking);
     }
 
     [HttpPost("selecionar")]
@@ -89,7 +53,6 @@ public class MatchingController : ControllerBase
     {
 
         var solicitacao = await _context.Solicitacoes
-            .AsNoTracking()
             .FirstOrDefaultAsync(s =>
                 s.Id == dados.SolicitacaoId);
 
@@ -117,6 +80,11 @@ public class MatchingController : ControllerBase
         {
             return Conflict(
                 "Essa solicitação já possui um técnico selecionado.");
+        }
+
+        if (solicitacao.Status is not (StatusSolicitacao.Aberta or StatusSolicitacao.AguardandoTecnico))
+        {
+            return Conflict("A solicitação não está disponível para escolher um técnico.");
         }
 
         var tecnico = await _context.Tecnicos
@@ -156,6 +124,7 @@ public class MatchingController : ControllerBase
                 tecnico,
                 especialidade);
 
+            solicitacao.RegistrarEtapaDoAtendimento(StatusSolicitacao.AguardandoTecnico);
             _context.SelecoesTecnicos.Add(selecao);
             await _context.SaveChangesAsync();
 
@@ -197,7 +166,9 @@ public class MatchingController : ControllerBase
             .AsNoTracking()
             .Where(s =>
                 s.SolicitacaoId == solicitacaoId)
-            .OrderByDescending(s => s.DataSelecao)
+            .OrderBy(s => s.Status == StatusSelecaoTecnico.Recusada)
+            .ThenByDescending(s => s.DataSelecao)
+            .ThenByDescending(s => s.Id)
             .FirstOrDefaultAsync();
 
         if (selecao is null)
@@ -229,6 +200,7 @@ public class MatchingController : ControllerBase
             .AsNoTracking()
             .Where(s =>
                 s.TecnicoId == tecnicoId &&
+                s.Solicitacao!.Status != StatusSolicitacao.Cancelada &&
                 s.Status ==
                     StatusSelecaoTecnico.AguardandoResposta)
             .OrderBy(s => s.DataSelecao)
@@ -236,6 +208,7 @@ public class MatchingController : ControllerBase
             {
                 s.Id,
                 s.SolicitacaoId,
+                SolicitacaoNumero = s.Solicitacao!.Numero,
                 s.TecnicoId,
                 s.EspecialidadeId,
                 Especialidade = s.Especialidade!.Nome,
@@ -252,6 +225,7 @@ public class MatchingController : ControllerBase
     {
         var selecao = await _context.SelecoesTecnicos
             .Include(s => s.Historico)
+            .Include(s => s.Solicitacao)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (selecao is null)
@@ -262,6 +236,7 @@ public class MatchingController : ControllerBase
         try
         {
             selecao.Aceitar();
+            selecao.Solicitacao!.RegistrarEtapaDoAtendimento(StatusSolicitacao.EmDiagnostico);
             await _context.SaveChangesAsync();
 
             return Ok(new
@@ -287,6 +262,7 @@ public class MatchingController : ControllerBase
     {
         var selecao = await _context.SelecoesTecnicos
             .Include(s => s.Historico)
+            .Include(s => s.Solicitacao)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (selecao is null)
@@ -296,6 +272,11 @@ public class MatchingController : ControllerBase
 
         try
         {
+            if (selecao.Solicitacao!.Status == StatusSolicitacao.Cancelada)
+            {
+                return BadRequest("Esta solicitação foi cancelada.");
+            }
+
             selecao.Recusar(dados.Motivo);
             await _context.SaveChangesAsync();
 

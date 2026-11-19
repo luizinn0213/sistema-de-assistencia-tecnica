@@ -2,7 +2,7 @@ import type {
     HistoricoSelecao,
     SelecaoTecnico,
     SelecionarTecnicoDados,
-    TecnicoCompativel
+    TecnicoRanking
 } from '../types/Matching'
 
 const API_URL = 'http://localhost:5141/api/matching'
@@ -24,6 +24,7 @@ async function obterMensagemErro(
         }
 
         return (
+            dados.erro ||
             dados.message ||
             dados.title ||
             texto
@@ -43,16 +44,21 @@ async function validarResposta(
     }
 }
 
-export async function buscarTecnicosCompativeis(
+export async function buscarRankingTecnicos(
     especialidadeId: number,
-    cidade: string
-): Promise<TecnicoCompativel[]> {
+    cidade: string,
+    solicitacaoId?: number
+): Promise<TecnicoRanking[]> {
     const parametros = new URLSearchParams({
         especialidadeId: especialidadeId.toString()
     })
 
     if (cidade.trim()) {
         parametros.append('cidade', cidade.trim())
+    }
+
+    if (solicitacaoId && solicitacaoId > 0) {
+        parametros.append('solicitacaoId', solicitacaoId.toString())
     }
 
     const resposta = await fetch(
@@ -83,10 +89,12 @@ export async function selecionarTecnico(
 
 export async function buscarSelecaoDaSolicitacao(
     solicitacaoId: number
-): Promise<SelecaoTecnico> {
+): Promise<SelecaoTecnico | null> {
     const resposta = await fetch(
         `${API_URL}/solicitacoes/${solicitacaoId}`
     )
+
+    if (resposta.status === 404) return null
 
     await validarResposta(resposta)
     return resposta.json()

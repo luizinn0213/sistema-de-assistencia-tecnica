@@ -10,7 +10,7 @@ import {
     buscarCliente
 } from '../services/clientesApi'
 
-export function PerfilCliente() {
+export function PerfilCliente({ aoTrocarSenha }: { aoTrocarSenha: () => void }) {
     const sessao = obterSessao()
     const clienteId = sessao?.clienteId
 
@@ -147,16 +147,16 @@ export function PerfilCliente() {
         }
     }
 
-    function sairDaConta() {
-        const confirmou = window.confirm(
-            'Deseja realmente sair da conta?'
-        )
+    async function sairDaConta() {
+        if (!window.confirm('Deseja realmente sair da conta?')) return
 
-        if (!confirmou) {
+        try {
+            await encerrarSessao()
+        } catch {
+            setErro('Você saiu deste navegador, mas não foi possível confirmar o logout no servidor.')
             return
         }
 
-        encerrarSessao()
         window.location.reload()
     }
 
@@ -401,6 +401,13 @@ export function PerfilCliente() {
                 </section>
 
                 <div className="acoes-formulario acoes-perfil-cliente">
+                    <button
+                        className="botao-secundario"
+                        type="button"
+                        onClick={aoTrocarSenha}
+                    >
+                        Alterar minha senha
+                    </button>
                     <button
                         className="botao-sair"
                         type="button"

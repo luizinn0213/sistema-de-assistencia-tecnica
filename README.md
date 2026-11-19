@@ -131,16 +131,17 @@ O terminal do frontend também deve permanecer aberto.
 
 Em ambientes nos quais o PowerShell não bloqueia o arquivo `npm.ps1`, os comandos podem ser executados utilizando apenas `npm`.
 
-## Fluxo principal da AV1
+## Fluxo de atendimento
 
-1. O cliente cria sua conta e entra no sistema.
-2. O cliente cadastra um equipamento.
-3. O cliente abre uma solicitação de serviço.
-4. O sistema busca técnicos disponíveis com a especialidade necessária.
-5. O cliente seleciona um técnico.
-6. O técnico visualiza a solicitação recebida.
-7. O técnico aceita ou recusa a solicitação.
-8. A mudança de estado fica registrada no histórico e no banco.
+1. Em **Cadastrar técnico**, crie uma conta profissional com e-mail e senha.
+2. Entre como técnico. No **Perfil técnico**, vincule a especialidade e clique em **Ficar disponível**.
+3. Em **Criar conta de cliente**, cadastre outro e-mail. Entre como cliente, cadastre um equipamento e abra uma solicitação.
+4. Em **Minhas solicitações**, clique em **Escolher técnico**. Use **Buscar técnicos** para ver o ranking e escolha um profissional.
+5. Entre como o técnico selecionado. Em **Solicitações**, aceite o atendimento ou use **Iniciar recusa** e **Confirmar recusa**.
+6. Como cliente, use **Atualizar resposta** após a recusa para escolher outro técnico. Em **Minhas solicitações**, acompanhe o status, consulte o histórico ou cancele enquanto o serviço ainda não começou.
+7. Após aceitar, use **Ir para diagnóstico**. Preencha e conclua o diagnóstico, depois use **Ir para orçamento** para montar e enviar a proposta.
+8. Como cliente, abra **Orçamentos**, selecione o protocolo e aprove a proposta. Como técnico, abra **Execução e avaliação** para iniciar e concluir o serviço. Use **Atualizar atendimentos** para consultar alterações feitas na outra conta.
+9. Depois da conclusão, o cliente pode dar uma nota e comentar em **Execução e avaliação**.
 
 ## Regras essenciais
 
