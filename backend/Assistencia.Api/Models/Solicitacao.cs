@@ -21,6 +21,9 @@ public class Solicitacao
     public int EspecialidadeId { get; private set; }
     public Especialidade? Especialidade { get; private set; }
 
+    public ICollection<HistoricoSolicitacao> Historico
+        { get; private set; } = new List<HistoricoSolicitacao>();
+
     public Solicitacao()
     {
     }
@@ -72,6 +75,56 @@ public class Solicitacao
         Numero = GerarNumero();
         Status = StatusSolicitacao.Aberta;
         DataCriacao = DateTime.UtcNow;
+    }
+
+    public void AlterarStatus(StatusSolicitacao novoStatus)
+    {
+        if (Status == StatusSolicitacao.Cancelada ||
+            Status == StatusSolicitacao.Concluida)
+        {
+            throw new InvalidOperationException(
+                "Não é possível alterar uma solicitação encerrada.");
+        }
+
+        if (novoStatus == StatusSolicitacao.Cancelada)
+        {
+            Cancelar();
+            return;
+        }
+
+        if (novoStatus != (StatusSolicitacao)((int)Status + 1))
+        {
+            throw new InvalidOperationException(
+                "Transição de status inválida.");
+        }
+
+        RegistrarAlteracaoStatus(novoStatus);
+    }
+
+    public void Cancelar()
+    {
+        if (Status == StatusSolicitacao.EmExecucao ||
+            Status == StatusSolicitacao.Concluida ||
+            Status == StatusSolicitacao.Cancelada)
+        {
+            throw new InvalidOperationException(
+                "Não é possível cancelar esta solicitação.");
+        }
+
+        RegistrarAlteracaoStatus(StatusSolicitacao.Cancelada);
+    }
+
+    private void RegistrarAlteracaoStatus(
+        StatusSolicitacao novoStatus)
+    {
+        var statusAnterior = Status;
+
+        Status = novoStatus;
+
+        Historico.Add(new HistoricoSolicitacao(
+            this,
+            statusAnterior,
+            novoStatus));
     }
 
     private static string GerarNumero()

@@ -65,6 +65,9 @@ public class AppDbContext : DbContext
 
     public DbSet<RefreshToken> RefreshTokens
         => Set<RefreshToken>();
+        
+    public DbSet<HistoricoSolicitacao> HistoricosSolicitacoes
+        => Set<HistoricoSolicitacao>();
 
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
@@ -346,6 +349,33 @@ public class AppDbContext : DbContext
         refreshToken.Property(t => t.TokenHash).HasMaxLength(64).IsRequired();
         refreshToken.Property(t => t.SubstituidoPorHash).HasMaxLength(64);
         refreshToken.Ignore(t => t.Ativo);
+
+        modelBuilder.Entity<HistoricoSolicitacao>()
+            .HasOne(h => h.Solicitacao)
+            .WithMany(s => s.Historico)
+            .HasForeignKey(h => h.SolicitacaoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<HistoricoSolicitacao>()
+            .HasIndex(h => new
+            {
+                h.SolicitacaoId,
+                h.DataAlteracao
+            });
+            
+
+        modelBuilder.Entity<HistoricoSolicitacao>()
+            .HasOne(h => h.Solicitacao)
+            .WithMany(s => s.Historico)
+            .HasForeignKey(h => h.SolicitacaoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<HistoricoSolicitacao>()
+            .HasIndex(h => new
+            {
+                h.SolicitacaoId,
+                h.DataAlteracao
+            });
 
     }
 }

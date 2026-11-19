@@ -329,6 +329,31 @@ namespace Assistencia.Api.Migrations
                     b.ToTable("HistoricosSelecoesTecnicos");
                 });
 
+            modelBuilder.Entity("Assistencia.Api.Models.HistoricoSolicitacao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DataAlteracao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NovoStatus")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SolicitacaoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StatusAnterior")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SolicitacaoId", "DataAlteracao");
+
+                    b.ToTable("HistoricosSolicitacoes");
+                });
+
             modelBuilder.Entity("Assistencia.Api.Models.ItemOrcamento", b =>
                 {
                     b.Property<int>("Id")
@@ -715,6 +740,17 @@ namespace Assistencia.Api.Migrations
                     b.Navigation("SelecaoTecnico");
                 });
 
+            modelBuilder.Entity("Assistencia.Api.Models.HistoricoSolicitacao", b =>
+                {
+                    b.HasOne("Assistencia.Api.Models.Solicitacao", "Solicitacao")
+                        .WithMany("Historico")
+                        .HasForeignKey("SolicitacaoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Solicitacao");
+                });
+
             modelBuilder.Entity("Assistencia.Api.Models.ItemOrcamento", b =>
                 {
                     b.HasOne("Assistencia.Api.Models.Orcamento", "Orcamento")
@@ -846,6 +882,11 @@ namespace Assistencia.Api.Migrations
                 });
 
             modelBuilder.Entity("Assistencia.Api.Models.SelecaoTecnico", b =>
+                {
+                    b.Navigation("Historico");
+                });
+
+            modelBuilder.Entity("Assistencia.Api.Models.Solicitacao", b =>
                 {
                     b.Navigation("Historico");
                 });

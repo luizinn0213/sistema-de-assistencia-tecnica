@@ -355,6 +355,288 @@ public class SolicitacoesTests
         Assert.IsType<NotFoundObjectResult>(resultadoOutro);
     }
 
+    [Fact]
+    public async Task DevePersistirHistoricoAoSalvarAlteracoes()
+    {
+        using var banco = CriarBanco();
+
+        var cenario = await CriarCenario(banco.Context);
+        var solicitacao = await CriarSolicitacaoNoBanco(
+            banco.Context,
+            cenario,
+            StatusSolicitacao.EmDiagnostico);
+
+        banco.Context.ChangeTracker.Clear();
+
+        var registros = await banco.Context.HistoricosSolicitacoes
+            .Where(h => h.SolicitacaoId == solicitacao.Id)
+            .OrderBy(h => h.Id)
+            .ToListAsync();
+
+        Assert.Equal(2, registros.Count);
+        Assert.Equal(StatusSolicitacao.Aberta, registros[0].StatusAnterior);
+        Assert.Equal(StatusSolicitacao.AguardandoTecnico, registros[0].NovoStatus);
+        Assert.Equal(StatusSolicitacao.AguardandoTecnico, registros[1].StatusAnterior);
+        Assert.Equal(StatusSolicitacao.EmDiagnostico, registros[1].NovoStatus);
+    }
+
+    [Fact]
+    public async Task DeveConsultarHistoricoEmOrdemCronologica()
+    {
+        using var banco = CriarBanco();
+
+        var cenario = await CriarCenario(banco.Context);
+        var solicitacao = await CriarSolicitacaoNoBanco(
+            banco.Context,
+            cenario,
+            StatusSolicitacao.Aberta);
+
+        solicitacao.AlterarStatus(StatusSolicitacao.AguardandoTecnico);
+        await banco.Context.SaveChangesAsync();
+
+        solicitacao.AlterarStatus(StatusSolicitacao.EmDiagnostico);
+        await banco.Context.SaveChangesAsync();
+
+        solicitacao.Cancelar();
+        await banco.Context.SaveChangesAsync();
+
+        banco.Context.ChangeTracker.Clear();
+
+        var resultado = await cenario.Controller.ListarHistorico(
+            cenario.Cliente.Id,
+            solicitacao.Id);
+
+        var registros = LerJson(
+            Assert.IsType<OkObjectResult>(resultado))
+            .EnumerateArray()
+            .ToList();
+
+        Assert.Equal(3, registros.Count);
+
+        Assert.Equal(
+            new[] { "Aberta", "AguardandoTecnico", "EmDiagnostico" },
+            registros.Select(r =>
+                r.GetProperty("StatusAnterior").GetString()));
+
+        Assert.Equal(
+            new[] { "AguardandoTecnico", "EmDiagnostico", "Cancelada" },
+            registros.Select(r =>
+                r.GetProperty("NovoStatus").GetString()));
+
+        Assert.All(registros, r => Assert.Equal(
+            solicitacao.Id,
+            r.GetProperty("SolicitacaoId").GetInt32()));
+
+        var datas = registros
+            .Select(r => r.GetProperty("DataAlteracao").GetDateTime())
+            .ToList();
+
+        Assert.Equal(datas.OrderBy(d => d), datas);
+    }
+
+    [Fact]
+    public async Task HistoricoDeSolicitacaoSemAlteracoesDeveSerVazio()
+    {
+        using var banco = CriarBanco();
+
+        var cenario = await CriarCenario(banco.Context);
+        var solicitacao = await CriarSolicitacaoNoBanco(
+            banco.Context,
+            cenario,
+            StatusSolicitacao.Aberta);
+
+        var resultado = await cenario.Controller.ListarHistorico(
+            cenario.Cliente.Id,
+            solicitacao.Id);
+
+        var registros = LerJson(
+            Assert.IsType<OkObjectResult>(resultado));
+
+        Assert.Empty(registros.EnumerateArray());
+    }
+
+    [Fact]
+    public async Task NaoDeveConsultarHistoricoDeOutroCliente()
+    {
+        using var banco = CriarBanco();
+
+        var cenario = await CriarCenario(banco.Context);
+        var outroCliente = await CriarCliente(banco.Context, "b");
+        var solicitacao = await CriarSolicitacaoNoBanco(
+            banco.Context,
+            cenario,
+            StatusSolicitacao.AguardandoTecnico);
+
+        var resultado = await cenario.Controller.ListarHistorico(
+            outroCliente.Id,
+            solicitacao.Id);
+
+        Assert.IsType<NotFoundObjectResult>(resultado);
+    }
+
+    [Fact]
+    public async Task NaoDeveConsultarHistoricoDeSolicitacaoInexistente()
+    {
+        using var banco = CriarBanco();
+
+        var cenario = await CriarCenario(banco.Context);
+
+        var resultado = await cenario.Controller.ListarHistorico(
+            cenario.Cliente.Id,
+            999);
+
+        Assert.IsType<NotFoundObjectResult>(resultado);
+    }
+
+    [Fact]
+    public async Task DeveCancelarPeloEndpointERegistrarHistorico()
+    {
+        using var banco = CriarBanco();
+
+        var cenario = await CriarCenario(banco.Context);
+        var solicitacao = await CriarSolicitacaoNoBanco(
+            banco.Context,
+            cenario,
+            StatusSolicitacao.OrcamentoEnviado);
+
+        banco.Context.ChangeTracker.Clear();
+
+        var resultado = await cenario.Controller.Cancelar(
+            cenario.Cliente.Id,
+            solicitacao.Id);
+
+        var resposta = LerJson(
+            Assert.IsType<OkObjectResult>(resultado));
+
+        Assert.Equal(
+            "Cancelada",
+            resposta.GetProperty("Status").GetString());
+
+        banco.Context.ChangeTracker.Clear();
+
+        var salva = await banco.Context.Solicitacoes
+            .Include(s => s.Historico)
+            .SingleAsync(s => s.Id == solicitacao.Id);
+
+        Assert.Equal(StatusSolicitacao.Cancelada, salva.Status);
+
+        var ultimo = salva.Historico
+            .OrderBy(h => h.Id)
+            .Last();
+
+        Assert.Equal(4, salva.Historico.Count);
+        Assert.Equal(StatusSolicitacao.OrcamentoEnviado, ultimo.StatusAnterior);
+        Assert.Equal(StatusSolicitacao.Cancelada, ultimo.NovoStatus);
+    }
+
+    [Theory]
+    [InlineData(StatusSolicitacao.EmExecucao)]
+    [InlineData(StatusSolicitacao.Concluida)]
+    [InlineData(StatusSolicitacao.Cancelada)]
+    public async Task NaoDeveCancelarPeloEndpointAposInicioDaExecucao(
+        StatusSolicitacao status)
+    {
+        using var banco = CriarBanco();
+
+        var cenario = await CriarCenario(banco.Context);
+        var solicitacao = await CriarSolicitacaoNoBanco(
+            banco.Context,
+            cenario,
+            status);
+
+        var registrosAntes = await banco.Context.HistoricosSolicitacoes
+            .CountAsync(h => h.SolicitacaoId == solicitacao.Id);
+
+        banco.Context.ChangeTracker.Clear();
+
+        var resultado = await cenario.Controller.Cancelar(
+            cenario.Cliente.Id,
+            solicitacao.Id);
+
+        Assert.IsType<BadRequestObjectResult>(resultado);
+
+        banco.Context.ChangeTracker.Clear();
+
+        var salva = await banco.Context.Solicitacoes
+            .SingleAsync(s => s.Id == solicitacao.Id);
+
+        Assert.Equal(status, salva.Status);
+        Assert.Equal(
+            registrosAntes,
+            await banco.Context.HistoricosSolicitacoes
+                .CountAsync(h => h.SolicitacaoId == solicitacao.Id));
+    }
+
+    [Fact]
+    public async Task NaoDeveCancelarSolicitacaoDeOutroCliente()
+    {
+        using var banco = CriarBanco();
+
+        var cenario = await CriarCenario(banco.Context);
+        var outroCliente = await CriarCliente(banco.Context, "b");
+        var solicitacao = await CriarSolicitacaoNoBanco(
+            banco.Context,
+            cenario,
+            StatusSolicitacao.Aberta);
+
+        banco.Context.ChangeTracker.Clear();
+
+        var resultado = await cenario.Controller.Cancelar(
+            outroCliente.Id,
+            solicitacao.Id);
+
+        Assert.IsType<NotFoundObjectResult>(resultado);
+
+        banco.Context.ChangeTracker.Clear();
+
+        var salva = await banco.Context.Solicitacoes
+            .SingleAsync(s => s.Id == solicitacao.Id);
+
+        Assert.Equal(StatusSolicitacao.Aberta, salva.Status);
+        Assert.Empty(banco.Context.HistoricosSolicitacoes);
+    }
+
+    [Fact]
+    public async Task NaoDeveCancelarSolicitacaoInexistente()
+    {
+        using var banco = CriarBanco();
+
+        var cenario = await CriarCenario(banco.Context);
+
+        var resultado = await cenario.Controller.Cancelar(
+            cenario.Cliente.Id,
+            999);
+
+        Assert.IsType<NotFoundObjectResult>(resultado);
+    }
+
+    private static async Task<Solicitacao> CriarSolicitacaoNoBanco(
+        AppDbContext context,
+        Cenario cenario,
+        StatusSolicitacao status)
+    {
+        var solicitacao = new Solicitacao(
+            cenario.Cliente.Id,
+            cenario.Equipamento,
+            cenario.Especialidade,
+            "Notebook não liga.");
+
+        if (status == StatusSolicitacao.Cancelada)
+        {
+            solicitacao.Cancelar();
+        }
+
+        while (solicitacao.Status < status)
+        {
+            solicitacao.AlterarStatus(solicitacao.Status + 1);
+        }
+
+        context.Solicitacoes.Add(solicitacao);
+        await context.SaveChangesAsync();
+
+        return solicitacao;
+    }
+
     private static JsonElement LerJson(OkObjectResult resultado)
     {
         return JsonSerializer.SerializeToElement(resultado.Value);
