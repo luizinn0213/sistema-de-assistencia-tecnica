@@ -1,4 +1,5 @@
-import { obterSessao } from '../services/authApi'
+import { encerrarSessao } from '../services/authApi'
+import type { SessaoUsuario } from '../types/Sessao'
 
 export type Pagina =
     | 'tecnicos'
@@ -20,15 +21,15 @@ export type Pagina =
 
 interface HeaderProps {
     paginaAtual: Pagina
+    sessao: SessaoUsuario | null
     aoNavegar: (pagina: Pagina) => void
 }
 
 export function Header({
     paginaAtual,
+    sessao,
     aoNavegar
 }: HeaderProps) {
-    const sessao = obterSessao()
-
     const iniciais = sessao
         ? sessao.nome
               .split(' ')
@@ -40,9 +41,9 @@ export function Header({
         : 'EN'
 
     function abrirPerfil() {
-        const sessaoAtual = obterSessao()
-
-        if (sessaoAtual?.clienteId) {
+        if (sessao?.tipo === 'Tecnico') {
+            aoNavegar('perfil-tecnico')
+        } else if (sessao?.clienteId) {
             aoNavegar('perfil-cliente')
         } else {
             aoNavegar('login')
@@ -152,7 +153,7 @@ export function Header({
                         aoNavegar('cadastro-cliente')
                     }
                 >
-                    Criar conta
+                    Criar conta de cliente
                 </button>
 
                 <button
@@ -268,6 +269,17 @@ export function Header({
                 </button>
             )}
 
+            {sessao?.tipo === 'Tecnico' && (
+                <button
+                    type="button"
+                    onClick={() => {
+                        void encerrarSessao().finally(() => window.location.reload())
+                            .catch(() => {})
+                    }}
+                >
+                    Sair da conta
+                </button>
+            )}
         </header>
     )
 }

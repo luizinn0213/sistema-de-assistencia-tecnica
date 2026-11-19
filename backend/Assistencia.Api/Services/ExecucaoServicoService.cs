@@ -1,4 +1,5 @@
 using Assistencia.Api.Dtos;
+using Assistencia.Api.Enums;
 using Assistencia.Api.Models;
 using Assistencia.Api.Repositories.Contracts;
 using Assistencia.Api.Services.Contracts;
@@ -48,6 +49,7 @@ public class ExecucaoServicoService : IExecucaoServicoService
             ?? throw new KeyNotFoundException(
                 "Orçamento não encontrado.");
 
+        orcamento.Diagnostico?.Solicitacao?.ValidarAtendimentoAtivo();
         var execucao = new ExecucaoServico(orcamento);
 
         await _execucaoRepository.AdicionarAsync(
@@ -102,6 +104,8 @@ public class ExecucaoServicoService : IExecucaoServicoService
         ArgumentNullException.ThrowIfNull(dados);
         var execucao = await ObterPorIdAsync(id, cancellationToken);
         execucao.Iniciar(dados.Observacao);
+        execucao.Orcamento?.Diagnostico?.Solicitacao?.RegistrarEtapaDoAtendimento(
+            StatusSolicitacao.EmExecucao);
         await SalvarAsync(cancellationToken);
         return execucao;
     }
@@ -114,6 +118,8 @@ public class ExecucaoServicoService : IExecucaoServicoService
         ArgumentNullException.ThrowIfNull(dados);
         var execucao = await ObterPorIdAsync(id, cancellationToken);
         execucao.Concluir(dados.ObservacaoFinal);
+        execucao.Orcamento?.Diagnostico?.Solicitacao?.RegistrarEtapaDoAtendimento(
+            StatusSolicitacao.Concluida);
         await SalvarAsync(cancellationToken);
         return execucao;
     }

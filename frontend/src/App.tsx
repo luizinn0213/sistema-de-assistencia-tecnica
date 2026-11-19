@@ -21,16 +21,26 @@ import { Diagnosticos } from './pages/Diagnosticos'
 import { Orcamentos } from './pages/Orcamentos'
 import { ExecucaoAvaliacao } from './pages/ExecucaoAvaliacao'
 import { TrocarSenha } from './pages/TrocarSenha'
+import { obterSessao } from './services/authApi'
 
 function App() {
     const [pagina, setPagina] =
         useState<Pagina>('tecnicos')
+    const [sessao, setSessao] = useState(obterSessao)
+    const [atendimentoInicial, setAtendimentoInicial] = useState<number>()
+
+    function navegar(destino: Pagina, atendimentoId?: number) {
+        setAtendimentoInicial(atendimentoId)
+        setSessao(obterSessao())
+        setPagina(destino)
+    }
 
     return (
         <>
             <Header
                 paginaAtual={pagina}
-                aoNavegar={setPagina}
+                aoNavegar={navegar}
+                sessao={sessao}
             />
 
             {pagina === 'tecnicos' && (
@@ -38,27 +48,35 @@ function App() {
             )}
 
             {pagina === 'matching' && (
-                <MatchingTecnicos />
+                <MatchingTecnicos key={atendimentoInicial} idInicial={atendimentoInicial} />
             )}
 
             {pagina === 'solicitacoes-tecnico' && (
-                <SolicitacoesTecnico />
+                <SolicitacoesTecnico aoDiagnosticar={id => navegar('diagnosticos', id)} />
             )}
 
             {pagina === 'diagnosticos' && (
-                <Diagnosticos />
+                <Diagnosticos
+                    key={atendimentoInicial}
+                    idInicial={atendimentoInicial}
+                    aoOrcar={id => navegar('orcamentos', id)}
+                />
             )}
 
             {pagina === 'orcamentos' && (
-                <Orcamentos />
+                <Orcamentos
+                    key={atendimentoInicial}
+                    idInicial={atendimentoInicial}
+                    aoAcompanhar={id => navegar('execucao-avaliacao', id)}
+                />
             )}
 
             {pagina === 'execucao-avaliacao' && (
-                <ExecucaoAvaliacao />
+                <ExecucaoAvaliacao key={atendimentoInicial} idInicial={atendimentoInicial} />
             )}
 
             {pagina === 'cadastro-tecnico' && (
-                <CadastroTecnico />
+                <CadastroTecnico aoEntrar={() => setPagina('login')} />
             )}
 
             {pagina === 'especialidades' && (
@@ -78,15 +96,15 @@ function App() {
             )}
 
             {pagina === 'login' && (
-                <Login />
+                <Login aoEntrar={setSessao} />
             )}
 
             {pagina === 'trocar-senha' && (
-                <TrocarSenha />
+                <TrocarSenha aoEntrar={() => navegar('login')} aoTrocar={() => setSessao(null)} />
             )}
 
             {pagina === 'perfil-cliente' && (
-                <PerfilCliente />
+                <PerfilCliente aoTrocarSenha={() => navegar('trocar-senha')} />
             )}
 
             {pagina === 'nova-solicitacao' && (
@@ -94,7 +112,7 @@ function App() {
             )}
 
             {pagina === 'minhas-solicitacoes' && (
-                <MinhasSolicitacoes />
+                <MinhasSolicitacoes aoEscolherTecnico={solicitacao => navegar('matching', solicitacao.id)} />
             )}
         </>
     )

@@ -59,6 +59,8 @@ public class DiagnosticoService : IDiagnosticoService
                 "A solicitação não possui uma seleção aceita.");
         }
 
+        selecao.Solicitacao?.ValidarAtendimentoAtivo();
+
         var diagnostico = new Diagnostico(
             selecao,
             dados.DescricaoDefeito);
@@ -120,6 +122,7 @@ public class DiagnosticoService : IDiagnosticoService
             id,
             cancellationToken);
 
+        diagnostico.Solicitacao?.ValidarAtendimentoAtivo();
         diagnostico.AlterarInformacoes(
             dados.DescricaoDefeito,
             dados.SolucaoRecomendada);
@@ -138,6 +141,7 @@ public class DiagnosticoService : IDiagnosticoService
             id,
             cancellationToken);
 
+        diagnostico.Solicitacao?.ValidarAtendimentoAtivo();
         diagnostico.Concluir();
 
         await _diagnosticoRepository.SalvarAlteracoesAsync(

@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import { Toast } from '../components/Toast'
 import { obterSessao, trocarSenha } from '../services/authApi'
 
-export function TrocarSenha() {
+export function TrocarSenha({ aoEntrar, aoTrocar }: { aoEntrar: () => void; aoTrocar: () => void }) {
     const sessao = obterSessao()
     const [senhaAtual, setSenhaAtual] = useState('')
     const [novaSenha, setNovaSenha] = useState('')
@@ -25,6 +25,7 @@ export function TrocarSenha() {
         setSalvando(true)
         try {
             setMensagem(await trocarSenha(senhaAtual, novaSenha))
+            aoTrocar()
             setSenhaAtual('')
             setNovaSenha('')
             setConfirmacao('')
@@ -39,6 +40,20 @@ export function TrocarSenha() {
         }
     }
 
+    if (mensagem) {
+        return (
+            <main className="pagina-login">
+                <section className="cartao-login">
+                    <h1>Senha alterada</h1>
+                    <p role="status">{mensagem}</p>
+                    <button type="button" className="botao-principal" onClick={aoEntrar}>
+                        Entrar novamente
+                    </button>
+                </section>
+            </main>
+        )
+    }
+
     if (!sessao) {
         return (
             <main className="pagina-conteudo">
@@ -50,7 +65,6 @@ export function TrocarSenha() {
     return (
         <main className="pagina-login">
             {erro && <Toast mensagem={erro} tipo="erro" aoFechar={() => setErro('')} />}
-            {mensagem && <Toast mensagem={mensagem} tipo="sucesso" aoFechar={() => setMensagem('')} />}
 
             <section className="cartao-login">
                 <div className="cabecalho-login">

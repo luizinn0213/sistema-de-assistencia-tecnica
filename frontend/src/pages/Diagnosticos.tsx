@@ -1,7 +1,10 @@
 import {
+    useEffect,
     useState,
     type FormEvent
 } from 'react'
+import { SeletorAtendimento } from '../components/SeletorAtendimento'
+import type { Atendimento } from '../types/Atendimento'
 import { Toast } from '../components/Toast'
 import {
     atualizarDiagnostico,
@@ -15,9 +18,24 @@ import type {
 
 type TipoToast = 'sucesso' | 'erro'
 
-export function Diagnosticos() {
-    const [solicitacaoId, setSolicitacaoId] =
-        useState('')
+export function Diagnosticos({ idInicial, aoOrcar }: { idInicial?: number; aoOrcar: (id: number) => void }) {
+    return (
+        <main className="pagina-equipamentos">
+            <div className="cabecalho-formulario">
+                <h1>Diagnóstico</h1>
+                <p>Registre o defeito encontrado e a solução recomendada.</p>
+            </div>
+            <SeletorAtendimento etapa="diagnostico" idInicial={idInicial}>
+                {(atendimento) => (
+                    <DiagnosticoAtendimento key={atendimento.id} atendimento={atendimento} aoOrcar={() => aoOrcar(atendimento.id)} />
+                )}
+            </SeletorAtendimento>
+        </main>
+    )
+}
+
+function DiagnosticoAtendimento({ atendimento, aoOrcar }: { atendimento: Atendimento; aoOrcar: () => void }) {
+    const { id: solicitacaoId, diagnosticoId } = atendimento
 
     const [diagnostico, setDiagnostico] =
         useState<Diagnostico | null>(null)
@@ -31,7 +49,7 @@ export function Diagnosticos() {
     ] = useState('')
 
     const [carregando, setCarregando] =
-        useState(false)
+        useState(Boolean(diagnosticoId))
 
     const [mensagem, setMensagem] =
         useState('')
@@ -62,72 +80,28 @@ export function Diagnosticos() {
         )
     }
 
-    function obterSolicitacaoId(): number | null {
-        const id = Number(solicitacaoId)
+    useEffect(() => {
+        if (!diagnosticoId) return
+        let ativo = true
 
-        if (!Number.isInteger(id) || id <= 0) {
-            mostrarMensagem(
-                'Informe um ID de solicitação válido.',
+        obterDiagnosticoPorSolicitacao(solicitacaoId).then(dados => {
+            if (ativo) preencherFormulario(dados)
+        }).catch((erro: unknown) => {
+            if (ativo) mostrarMensagem(
+                erro instanceof Error ? erro.message : 'Não foi possível carregar o diagnóstico.',
                 'erro'
             )
+        }).finally(() => {
+            if (ativo) setCarregando(false)
+        })
 
-            return null
-        }
-
-        return id
-    }
-
-    async function buscarDiagnostico(
-        evento: FormEvent
-    ) {
-        evento.preventDefault()
-
-        const id = obterSolicitacaoId()
-
-        if (id === null) {
-            return
-        }
-
-        setCarregando(true)
-
-        try {
-            const dados =
-                await obterDiagnosticoPorSolicitacao(
-                    id
-                )
-
-            preencherFormulario(dados)
-
-            mostrarMensagem(
-                'Diagnóstico encontrado.',
-                'sucesso'
-            )
-        } catch (erro) {
-            setDiagnostico(null)
-            setDescricaoDefeito('')
-            setSolucaoRecomendada('')
-
-            mostrarMensagem(
-                erro instanceof Error
-                    ? erro.message
-                    : 'Não foi possível buscar o diagnóstico.',
-                'erro'
-            )
-        } finally {
-            setCarregando(false)
-        }
-    }
+        return () => { ativo = false }
+    }, [diagnosticoId, solicitacaoId])
 
     async function criar(
         evento: FormEvent
     ) {
         evento.preventDefault()
-
-        const id = obterSolicitacaoId()
-
-        if (id === null) {
-            return
-        }
 
         if (!descricaoDefeito.trim()) {
             mostrarMensagem(
@@ -142,7 +116,7 @@ export function Diagnosticos() {
 
         try {
             const dados = await criarDiagnostico({
-                solicitacaoId: id,
+                solicitacaoId,
                 descricaoDefeito:
                     descricaoDefeito.trim()
             })
@@ -243,7 +217,7 @@ export function Diagnosticos() {
     }
 
     return (
-        <main className="pagina-equipamentos">
+        <>
             {mensagem && (
                 <Toast
                     mensagem={mensagem}
@@ -252,147 +226,105 @@ export function Diagnosticos() {
                 />
             )}
 
-            <div className="cabecalho-formulario">
-                <span className="subtitulo-formulario">
-                    ATENDIMENTO TÉCNICO
-                </span>
-
-                <h1>Diagnóstico</h1>
-
-                <p>
-                    Registre o defeito encontrado e a
-                    solução recomendada.
-                </p>
-            </div>
-
             <section className="painel-equipamentos">
-                <form
-                    className="formulario-equipamento"
-                    onSubmit={buscarDiagnostico}
-                >
-                    <label>
-                        ID da solicitação
-                        <input
-                            type="number"
-                            min="1"
-                            value={solicitacaoId}
-                            onChange={(evento) =>
-                                setSolicitacaoId(
-                                    evento.target.value
-                                )
-                            }
-                            placeholder="Ex.: 1"
-                        />
-                    </label>
-
-                    <button
-                        className="botao-secundario"
-                        type="submit"
-                        disabled={carregando}
+                {diagnosticoId && !diagnostico && carregando && <p>Carregando diagnóstico...</p>}
+                {(!diagnosticoId || diagnostico) && (
+                    <form
+                        className="formulario-equipamento"
+                        onSubmit={
+                            diagnostico ? salvar : criar
+                        }
                     >
-                        {carregando
-                            ? 'Buscando...'
-                            : 'Buscar diagnóstico'}
-                    </button>
-                </form>
+                        {diagnostico && (
+                            <div>
+                                <p>
+                                    <strong>Solicitação:</strong>{' '}
+                                    {atendimento.numero}
+                                </p>
 
-                <form
-                    className="formulario-equipamento"
-                    onSubmit={
-                        diagnostico ? salvar : criar
-                    }
-                >
-                    {diagnostico && (
-                        <div>
-                            <p>
-                                <strong>Diagnóstico:</strong>{' '}
-                                #{diagnostico.id}
-                            </p>
+                                <p>
+                                    <strong>Status:</strong>{' '}
+                                    {diagnostico.status}
+                                </p>
+                            </div>
+                        )}
 
-                            <p>
-                                <strong>Solicitação:</strong>{' '}
-                                {diagnostico.solicitacaoNumero ||
-                                    `#${diagnostico.solicitacaoId}`}
-                            </p>
+                        <label>
+                            Defeito encontrado
+                            <textarea
+                                rows={5}
+                                maxLength={2000}
+                                value={descricaoDefeito}
+                                disabled={concluido}
+                                onChange={(evento) =>
+                                    setDescricaoDefeito(
+                                        evento.target.value
+                                    )
+                                }
+                                placeholder="Descreva o defeito identificado"
+                            />
+                        </label>
 
-                            <p>
-                                <strong>Status:</strong>{' '}
-                                {diagnostico.status}
-                            </p>
-                        </div>
-                    )}
+                        <label>
+                            Solução recomendada
+                            <textarea
+                                rows={5}
+                                maxLength={2000}
+                                value={solucaoRecomendada}
+                                disabled={
+                                    concluido || !diagnostico
+                                }
+                                onChange={(evento) =>
+                                    setSolucaoRecomendada(
+                                        evento.target.value
+                                    )
+                                }
+                                placeholder={
+                                    diagnostico
+                                        ? 'Informe a solução recomendada'
+                                        : 'Crie o diagnóstico primeiro'
+                                }
+                            />
+                        </label>
 
-                    <label>
-                        Defeito encontrado
-                        <textarea
-                            rows={5}
-                            maxLength={2000}
-                            value={descricaoDefeito}
-                            disabled={concluido}
-                            onChange={(evento) =>
-                                setDescricaoDefeito(
-                                    evento.target.value
-                                )
-                            }
-                            placeholder="Descreva o defeito identificado"
-                        />
-                    </label>
-
-                    <label>
-                        Solução recomendada
-                        <textarea
-                            rows={5}
-                            maxLength={2000}
-                            value={solucaoRecomendada}
-                            disabled={
-                                concluido || !diagnostico
-                            }
-                            onChange={(evento) =>
-                                setSolucaoRecomendada(
-                                    evento.target.value
-                                )
-                            }
-                            placeholder={
-                                diagnostico
-                                    ? 'Informe a solução recomendada'
-                                    : 'Crie o diagnóstico primeiro'
-                            }
-                        />
-                    </label>
-
-                    {!concluido && (
-                        <div className="acoes-equipamento">
-                            <button
-                                className="botao-principal"
-                                type="submit"
-                                disabled={carregando}
-                            >
-                                {diagnostico
-                                    ? 'Salvar alterações'
-                                    : 'Criar diagnóstico'}
-                            </button>
-
-                            {diagnostico && (
+                        {!concluido && (
+                            <div className="acoes-equipamento">
                                 <button
-                                    className="botao-secundario"
-                                    type="button"
+                                    className="botao-principal"
+                                    type="submit"
                                     disabled={carregando}
-                                    onClick={concluir}
                                 >
-                                    Concluir diagnóstico
+                                    {diagnostico
+                                        ? 'Salvar alterações'
+                                        : 'Criar diagnóstico'}
                                 </button>
-                            )}
-                        </div>
-                    )}
 
-                    {concluido && (
-                        <p className="mensagem sucesso">
-                            Diagnóstico concluído. Já é
-                            possível criar o orçamento.
-                        </p>
-                    )}
-                </form>
+                                {diagnostico && (
+                                    <button
+                                        className="botao-secundario"
+                                        type="button"
+                                        disabled={carregando}
+                                        onClick={concluir}
+                                    >
+                                        Concluir diagnóstico
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        {concluido && (
+                            <>
+                                <p className="mensagem sucesso">
+                                    Diagnóstico concluído. Já é possível criar o orçamento.
+                                </p>
+                                <button type="button" className="botao-principal" onClick={aoOrcar}>
+                                    Ir para orçamento
+                                </button>
+                            </>
+                        )}
+                    </form>
+                )}
             </section>
-        </main>
+        </>
     )
 }   

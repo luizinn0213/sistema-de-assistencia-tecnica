@@ -16,6 +16,7 @@ export interface TecnicoRanking {
 export interface SelecaoTecnico {
     id: number
     solicitacaoId: number
+    solicitacaoNumero?: string
     tecnicoId: number
     tecnico?: string
     especialidadeId: number

@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Toast } from '../components/Toast'
-import { listarEspecialidades } from '../services/especialidadesApi'
+import { SeletorAtendimento } from '../components/SeletorAtendimento'
 import {
     buscarRankingTecnicos,
+    buscarSelecaoDaSolicitacao,
     selecionarTecnico
 } from '../services/matchingApi'
-import type { Especialidade } from '../types/Especialidade'
+import type { Atendimento } from '../types/Atendimento'
 import type {
     SelecaoTecnico,
     TecnicoRanking
@@ -26,13 +27,23 @@ function formatarNivel(nivel: number | string): string {
     return nivel
 }
 
-export function MatchingTecnicos() {
-    const [especialidades, setEspecialidades] =
-        useState<Especialidade[]>([])
+export function MatchingTecnicos({ idInicial }: { idInicial?: number }) {
+    return (
+        <main className="pagina-conteudo pagina-matching">
+            <div className="cabecalho-formulario">
+                <h1>Encontrar técnico</h1>
+                <p>Compare os técnicos disponíveis para a especialidade da solicitação.</p>
+            </div>
+            <SeletorAtendimento etapa="matching" idInicial={idInicial}>
+                {atendimento => <RankingAtendimento key={atendimento.id} atendimento={atendimento} />}
+            </SeletorAtendimento>
+        </main>
+    )
+}
 
-    const [solicitacaoId, setSolicitacaoId] = useState(1)
-    const [especialidadeId, setEspecialidadeId] = useState(0)
-    const [cidade, setCidade] = useState('')
+function RankingAtendimento({ atendimento }: { atendimento: Atendimento }) {
+    const { id: solicitacaoId, especialidade } = atendimento
+    const [cidade, setCidade] = useState(atendimento.cidade ?? '')
 
     const [tecnicos, setTecnicos] =
         useState<TecnicoRanking[]>([])
@@ -50,47 +61,29 @@ export function MatchingTecnicos() {
         tipo: 'sucesso' | 'erro'
     } | null>(null)
 
-    useEffect(() => {
-        listarEspecialidades()
-            .then((dados) => {
-                const especialidadesAtivas = dados.filter(
-                    (especialidade) => especialidade.ativa
-                )
+    const selecaoAtiva = selecao?.status === 'AguardandoResposta' ||
+        selecao?.status === 'Aceita'
+    const ocupado = carregando || selecionandoId !== null
 
-                setEspecialidades(especialidadesAtivas)
-
-                if (especialidadesAtivas.length > 0) {
-                    setEspecialidadeId(
-                        especialidadesAtivas[0].id
-                    )
-                }
-            })
-            .catch(() => {
-                setErro(
-                    'Não foi possível carregar as especialidades.'
-                )
-            })
-    }, [])
+    function limparBusca() {
+        setSelecao(null)
+        setTecnicos([])
+        setBuscaRealizada(false)
+        setErro('')
+    }
 
     async function executarBusca() {
-        if (especialidadeId <= 0) {
-            setErro('Selecione uma especialidade.')
-            return
-        }
-
         setCarregando(true)
-        setErro('')
-        setSelecao(null)
+        limparBusca()
 
         try {
-            const resultado =
-                await buscarRankingTecnicos(
-                    especialidadeId,
-                    cidade,
-                    solicitacaoId > 0 ? solicitacaoId : undefined
-                )
+            const [ranking, selecaoAtual] = await Promise.all([
+                buscarRankingTecnicos(especialidade.id, cidade, solicitacaoId),
+                buscarSelecaoDaSolicitacao(solicitacaoId)
+            ])
 
-            setTecnicos(resultado)
+            setSelecao(selecaoAtual)
+            setTecnicos(ranking)
             setBuscaRealizada(true)
         } catch (erroRecebido) {
             const mensagem =
@@ -114,13 +107,6 @@ export function MatchingTecnicos() {
     async function escolherTecnico(
         tecnico: TecnicoRanking
     ) {
-        if (solicitacaoId <= 0) {
-            setErro(
-                'Informe um número de solicitação válido.'
-            )
-            return
-        }
-
         setSelecionandoId(tecnico.id)
         setErro('')
 
@@ -149,7 +135,7 @@ export function MatchingTecnicos() {
     }
 
     return (
-        <main className="pagina-conteudo pagina-matching">
+        <>
             {toast && (
                 <Toast
                     mensagem={toast.mensagem}
@@ -158,63 +144,8 @@ export function MatchingTecnicos() {
                 />
             )}
 
-            <div className="cabecalho-formulario">
-                <span className="subtitulo-formulario">
-                    Escolha do profissional
-                </span>
-
-                <h1>Encontrar técnico</h1>
-
-                <p>
-                    Busque técnicos disponíveis ordenados pelo
-                    ranking de compatibilidade. Técnicos que já
-                    recusaram esta solicitação são filtrados
-                    automaticamente.
-                </p>
-            </div>
-
-            <form
-                className="formulario-matching"
-                onSubmit={buscarTecnicos}
-            >
-                <label>
-                    Número da solicitação
-
-                    <input
-                        type="number"
-                        min="1"
-                        value={solicitacaoId}
-                        onChange={(evento) =>
-                            setSolicitacaoId(
-                                Number(evento.target.value)
-                            )
-                        }
-                    />
-                </label>
-
-                <label>
-                    Especialidade
-
-                    <select
-                        value={especialidadeId}
-                        onChange={(evento) =>
-                            setEspecialidadeId(
-                                Number(evento.target.value)
-                            )
-                        }
-                    >
-                        {especialidades.map(
-                            (especialidade) => (
-                                <option
-                                    key={especialidade.id}
-                                    value={especialidade.id}
-                                >
-                                    {especialidade.nome}
-                                </option>
-                            )
-                        )}
-                    </select>
-                </label>
+            <form className="formulario-matching" onSubmit={buscarTecnicos}>
+                <p>Especialidade: <strong>{especialidade.nome}</strong></p>
 
                 <label>
                     Cidade do atendimento
@@ -223,16 +154,18 @@ export function MatchingTecnicos() {
                         type="text"
                         value={cidade}
                         placeholder="Ex.: Teresópolis"
-                        onChange={(evento) =>
+                        disabled={ocupado}
+                        onChange={(evento) => {
                             setCidade(evento.target.value)
-                        }
+                            limparBusca()
+                        }}
                     />
                 </label>
 
                 <button
                     className="botao-principal"
                     type="submit"
-                    disabled={carregando}
+                    disabled={ocupado}
                 >
                     {carregando
                         ? 'Buscando...'
@@ -246,7 +179,9 @@ export function MatchingTecnicos() {
 
             {selecao && (
                 <div className="mensagem sucesso">
-                    <strong>Técnico selecionado!</strong>
+                    <strong>
+                        {selecaoAtiva ? 'Técnico selecionado' : 'Última seleção'}
+                    </strong>
 
                     <span>
                         {selecao.tecnico} ·{' '}
@@ -254,22 +189,26 @@ export function MatchingTecnicos() {
                     </span>
 
                     <span>
-                        Status: {selecao.status}
+                        {selecao.status === 'Aceita' ? 'Aceita' :
+                            selecao.status === 'Recusada' ? 'Recusada' : 'Aguardando resposta'}
                     </span>
 
-                    <button
-                        type="button"
-                        className="botao-secundario"
-                        onClick={executarBusca}
-                    >
-                        Buscar novamente (caso haja recusa)
-                    </button>
+                    {selecao.status === 'AguardandoResposta' && (
+                        <button
+                            type="button"
+                            className="botao-secundario"
+                            disabled={ocupado}
+                            onClick={executarBusca}
+                        >
+                            Atualizar resposta
+                        </button>
+                    )}
                 </div>
             )}
 
             {!carregando &&
                 tecnicos.length === 0 &&
-                !selecao && (
+                !selecaoAtiva && (
                     <p className="estado-vazio">
                         {buscaRealizada
                             ? 'Nenhum técnico elegível encontrado para os critérios informados.'
@@ -363,9 +302,7 @@ export function MatchingTecnicos() {
                                     className="botao-principal"
                                     type="button"
                                     disabled={
-                                        selecionandoId ===
-                                            tecnico.id ||
-                                        selecao !== null
+                                        ocupado || selecaoAtiva
                                     }
                                     onClick={() =>
                                         escolherTecnico(tecnico)
@@ -381,6 +318,6 @@ export function MatchingTecnicos() {
                     )
                 })}
             </section>
-        </main>
+        </>
     )
 }

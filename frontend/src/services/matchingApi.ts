@@ -89,10 +89,12 @@ export async function selecionarTecnico(
 
 export async function buscarSelecaoDaSolicitacao(
     solicitacaoId: number
-): Promise<SelecaoTecnico> {
+): Promise<SelecaoTecnico | null> {
     const resposta = await fetch(
         `${API_URL}/solicitacoes/${solicitacaoId}`
     )
+
+    if (resposta.status === 404) return null
 
     await validarResposta(resposta)
     return resposta.json()

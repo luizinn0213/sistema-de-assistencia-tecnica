@@ -1,5 +1,6 @@
 using Assistencia.Api.Data;
 using Assistencia.Api.Dtos;
+using Assistencia.Api.Enums;
 using Assistencia.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -117,6 +118,64 @@ public class TecnicosController : ControllerBase
         catch (ArgumentException erro)
         {
             return BadRequest(erro.Message);
+        }
+    }
+
+    [HttpPost("cadastro")]
+    public async Task<ActionResult> CadastrarConta(CriarContaTecnicoDto dados)
+    {
+        var email = dados.Email.Trim().ToLowerInvariant();
+        var senhaHash = BCrypt.Net.BCrypt.HashPassword(dados.Senha);
+
+        // A transação serializa a reserva do ID e salva a conta junto com o perfil.
+        await using var transacao = await _context.Database.BeginTransactionAsync();
+
+        if (await _context.Usuarios.AnyAsync(u => u.Email == email))
+        {
+            return Conflict(new { erro = "E-mail já cadastrado." });
+        }
+
+        // Perfis antigos podiam ser criados com IDs de usuário ainda inexistentes.
+        var usuarioId = await _context.Database.SqlQuery<int>(
+            $"""
+            SELECT MAX(
+                COALESCE((SELECT seq FROM sqlite_sequence WHERE name = 'Usuarios'), 0),
+                COALESCE((SELECT MAX(Id) FROM Usuarios), 0),
+                COALESCE((SELECT MAX(UsuarioId) FROM Tecnicos), 0)
+            ) + 1 AS Value
+            """).SingleAsync();
+
+        var usuario = new Usuario
+        {
+            Id = usuarioId,
+            Nome = dados.NomeExibicao.Trim(),
+            Email = email,
+            SenhaHash = senhaHash,
+            Tipo = TipoUsuario.Tecnico
+        };
+
+        try
+        {
+            var tecnico = new Tecnico(
+                usuario.Id,
+                dados.NomeExibicao,
+                dados.DescricaoProfissional ?? string.Empty,
+                dados.CidadeAtendimento,
+                dados.EstadoAtendimento);
+
+            _context.Usuarios.Add(usuario);
+            _context.Tecnicos.Add(tecnico);
+            await _context.SaveChangesAsync();
+            await transacao.CommitAsync();
+
+            return CreatedAtAction(
+                nameof(BuscarPorId),
+                new { id = tecnico.Id },
+                new { tecnico.Id, tecnico.UsuarioId, tecnico.NomeExibicao });
+        }
+        catch (ArgumentException erro)
+        {
+            return BadRequest(new { erro = erro.Message });
         }
     }
 

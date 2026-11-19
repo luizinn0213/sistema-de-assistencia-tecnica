@@ -9,11 +9,20 @@ import {
   atualizarTecnico,
   listarTecnicos
 } from '../services/tecnicosApi'
+import { obterSessao } from '../services/authApi'
 import type { Tecnico } from '../types/Tecnico'
 
 export function PerfilTecnico() {
-  const [tecnicos, setTecnicos] = useState<Tecnico[]>([])
-  const [tecnicoId, setTecnicoId] = useState(0)
+  const sessao = obterSessao()
+  if (sessao?.tipo !== 'Tecnico') {
+    return <main className="pagina-conteudo"><p>Entre como técnico para acessar seu perfil.</p></main>
+  }
+
+  return <PerfilProfissional key={sessao.id} usuarioTecnicoId={sessao.id} />
+}
+
+function PerfilProfissional({ usuarioTecnicoId }: { usuarioTecnicoId: number }) {
+  const [tecnico, setTecnico] = useState<Tecnico>()
 
   const [mostrarVinculo, setMostrarVinculo] =
     useState(false)
@@ -61,11 +70,7 @@ export function PerfilTecnico() {
     listarTecnicos()
       .then((dados) => {
         if (componenteAtivo) {
-          setTecnicos(dados)
-
-          if (dados.length > 0) {
-            setTecnicoId(dados[0].id)
-          }
+          setTecnico(dados.find((item) => item.usuarioId === usuarioTecnicoId))
         }
       })
       .catch(() => {
@@ -82,16 +87,12 @@ export function PerfilTecnico() {
     return () => {
       componenteAtivo = false
     }
-  }, [])
+  }, [usuarioTecnicoId])
 
   async function atualizarTecnicos() {
     const dados = await listarTecnicos()
-    setTecnicos(dados)
+    setTecnico(dados.find((item) => item.usuarioId === usuarioTecnicoId))
   }
-
-  const tecnico = tecnicos.find(
-    (item) => item.id === tecnicoId
-  )
 
   function iniciarEdicaoDados() {
     if (!tecnico) {
@@ -300,32 +301,6 @@ export function PerfilTecnico() {
             disponibilidade.
           </p>
         </div>
-
-        <label className="seletor-demonstracao">
-          Técnico utilizado na demonstração
-
-          <select
-            value={tecnicoId}
-            onChange={(evento) => {
-              setTecnicoId(Number(evento.target.value))
-              setMostrarVinculo(false)
-              setEditandoDados(false)
-              setErroAcao('')
-              setMensagemAcao('')
-            }}
-          >
-            {tecnicos.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.nomeExibicao}
-              </option>
-            ))}
-          </select>
-
-          <small>
-            Esse seletor será removido quando o login estiver
-            integrado.
-          </small>
-        </label>
 
         <section className="painel-perfil-tecnico">
           <div className="avatar avatar-perfil">

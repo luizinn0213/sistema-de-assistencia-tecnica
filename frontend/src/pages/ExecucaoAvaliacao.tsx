@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
+import { SeletorAtendimento } from '../components/SeletorAtendimento'
+import type { Atendimento } from '../types/Atendimento'
+import { obterSessao } from '../services/authApi'
 import {
     concluirExecucao,
     criarAvaliacao,
@@ -27,9 +30,29 @@ function rotuloStatus(status: string): string {
     return rotulos[status] ?? status
 }
 
-export function ExecucaoAvaliacao() {
-    const [orcamentoId, setOrcamentoId] = useState(1)
-    const [clienteId, setClienteId] = useState(1)
+export function ExecucaoAvaliacao({ idInicial }: { idInicial?: number }) {
+    return (
+        <main className="pagina-conteudo pagina-execucao">
+            <div className="cabecalho-formulario">
+                <h1>Execução e avaliação</h1>
+                <p>Acompanhe o serviço aprovado e a avaliação do cliente.</p>
+            </div>
+            <SeletorAtendimento etapa="execucao" idInicial={idInicial}>
+                {(atendimento, perfil) => (
+                    <ExecucaoAtendimento
+                        key={atendimento.id}
+                        atendimento={atendimento}
+                        tecnico={perfil === 'Tecnico'}
+                    />
+                )}
+            </SeletorAtendimento>
+        </main>
+    )
+}
+
+function ExecucaoAtendimento({ atendimento, tecnico }: { atendimento: Atendimento; tecnico: boolean }) {
+    const { orcamentoId } = atendimento
+    const clienteDaSessao = !tecnico ? obterSessao()?.clienteId : undefined
     const [observacao, setObservacao] = useState('')
     const [nota, setNota] = useState(5)
     const [comentario, setComentario] = useState('')
@@ -38,6 +61,32 @@ export function ExecucaoAvaliacao() {
     const [erro, setErro] = useState('')
     const [mensagem, setMensagem] = useState('')
     const [carregando, setCarregando] = useState(false)
+    const [consultando, setConsultando] = useState(true)
+
+    useEffect(() => {
+        if (!orcamentoId) return
+        let ativo = true
+
+        async function carregar(id: number) {
+            try {
+                const encontrada = await obterExecucaoPorOrcamento(id)
+                if (!ativo) return
+                setExecucao(encontrada)
+
+                if (encontrada?.status === 'Concluida') {
+                    const notaRegistrada = await obterAvaliacaoPorExecucao(encontrada.id)
+                    if (ativo) setAvaliacao(notaRegistrada)
+                }
+            } catch (falha) {
+                if (ativo) setErro(falha instanceof Error ? falha.message : 'Não foi possível carregar a execução.')
+            } finally {
+                if (ativo) setConsultando(false)
+            }
+        }
+
+        void carregar(orcamentoId)
+        return () => { ativo = false }
+    }, [orcamentoId])
 
     async function executar(acao: () => Promise<void>) {
         setCarregando(true)
@@ -56,24 +105,8 @@ export function ExecucaoAvaliacao() {
         }
     }
 
-    async function buscar(evento: FormEvent) {
-        evento.preventDefault()
-        await executar(async () => {
-            const encontrada = await obterExecucaoPorOrcamento(orcamentoId)
-            setExecucao(encontrada)
-            setAvaliacao(null)
-
-            if (encontrada.status === 'Concluida') {
-                try {
-                    setAvaliacao(await obterAvaliacaoPorExecucao(encontrada.id))
-                } catch {
-                    setAvaliacao(null)
-                }
-            }
-        })
-    }
-
     async function criar() {
+        if (!orcamentoId || !tecnico) return
         await executar(async () => {
             setExecucao(await criarExecucao(orcamentoId))
             setMensagem('Execução criada. O serviço já pode ser iniciado.')
@@ -100,11 +133,11 @@ export function ExecucaoAvaliacao() {
 
     async function avaliar(evento: FormEvent) {
         evento.preventDefault()
-        if (!execucao) return
+        if (!execucao || !clienteDaSessao) return
         await executar(async () => {
             const criada = await criarAvaliacao({
                 execucaoServicoId: execucao.id,
-                clienteId,
+                clienteId: clienteDaSessao,
                 nota,
                 comentario
             })
@@ -114,113 +147,93 @@ export function ExecucaoAvaliacao() {
     }
 
     return (
-        <main className="pagina-conteudo pagina-execucao">
-            <div className="cabecalho-formulario">
-                <span className="subtitulo-formulario">Fluxo do atendimento</span>
-                <h1>Execução e avaliação</h1>
-                <p>Inicie e conclua o serviço aprovado e registre a avaliação do cliente.</p>
-            </div>
-
-            <section className="painel-execucao">
-                <form className="formulario-execucao" onSubmit={buscar}>
-                    <label>
-                        ID do orçamento aprovado
-                        <input type="number" min="1" value={orcamentoId}
-                            onChange={(e) => setOrcamentoId(Number(e.target.value))} />
-                    </label>
-                    <button className="botao-secundario" disabled={carregando}>
-                        Buscar execução
-                    </button>
-                    <button className="botao-principal" type="button"
-                        disabled={carregando} onClick={criar}>
+        <section className="painel-execucao">
+            {consultando && <p>Carregando execução...</p>}
+            {!consultando && !execucao && !erro && (
+                tecnico ? (
+                    <button className="botao-principal" type="button" disabled={carregando} onClick={criar}>
                         Criar execução
                     </button>
-                </form>
+                ) : <p className="estado-vazio">Aguardando o técnico registrar a execução.</p>
+            )}
 
-                {erro && <p className="mensagem erro">{erro}</p>}
-                {mensagem && <p className="mensagem sucesso">{mensagem}</p>}
+            {erro && <p className="mensagem erro">{erro}</p>}
+            {mensagem && <p className="mensagem sucesso">{mensagem}</p>}
 
-                {execucao && (
-                    <div className="cartao-execucao">
-                        <div className="resumo-execucao">
-                            <span className="subtitulo-formulario">Resumo</span>
-                            <h2>Execução #{execucao.id}</h2>
-                            <p><strong>Status:</strong> {rotuloStatus(execucao.status)}</p>
-                            <p><strong>Solicitação:</strong> {execucao.solicitacaoNumero ?? execucao.solicitacaoId}</p>
-                            <p><strong>Técnico:</strong> {execucao.tecnico ?? 'Não informado'}</p>
-                            <p><strong>Início:</strong> {dataHora(execucao.dataInicio)}</p>
-                            <p><strong>Conclusão:</strong> {dataHora(execucao.dataConclusao)}</p>
+            {execucao && (
+                <div className="cartao-execucao">
+                    <div className="resumo-execucao">
+                        <span className="subtitulo-formulario">Resumo</span>
+                        <h2>{atendimento.numero}</h2>
+                        <p><strong>Status:</strong> {rotuloStatus(execucao.status)}</p>
+                        <p><strong>Técnico:</strong> {execucao.tecnico ?? 'Não informado'}</p>
+                        <p><strong>Início:</strong> {dataHora(execucao.dataInicio)}</p>
+                        <p><strong>Conclusão:</strong> {dataHora(execucao.dataConclusao)}</p>
+                    </div>
+
+                    {tecnico && execucao.status !== 'Concluida' && (
+                        <div className="acoes-execucao">
+                            <label>
+                                Observação
+                                <textarea maxLength={1000} value={observacao}
+                                    onChange={(e) => setObservacao(e.target.value)} />
+                            </label>
+                            {execucao.status === 'AguardandoInicio' && (
+                                <button className="botao-principal" type="button" disabled={carregando} onClick={iniciar}>
+                                    Iniciar serviço
+                                </button>
+                            )}
+                            {execucao.status === 'EmAndamento' && (
+                                <button className="botao-principal" type="button" disabled={carregando} onClick={concluir}>
+                                    Concluir serviço
+                                </button>
+                            )}
                         </div>
+                    )}
 
-                        {execucao.status !== 'Concluida' && (
-                            <div className="acoes-execucao">
-                                <label>
-                                    Observação
-                                    <textarea maxLength={1000} value={observacao}
-                                        onChange={(e) => setObservacao(e.target.value)} />
-                                </label>
-                                {execucao.status === 'AguardandoInicio' && (
-                                    <button className="botao-principal" type="button" onClick={iniciar}>
-                                        Iniciar serviço
-                                    </button>
-                                )}
-                                {execucao.status === 'EmAndamento' && (
-                                    <button className="botao-principal" type="button" onClick={concluir}>
-                                        Concluir serviço
-                                    </button>
-                                )}
-                            </div>
-                        )}
+                    <div className="historico-execucao">
+                        <h2>Histórico</h2>
+                        {execucao.historico.map((item) => (
+                            <article key={`${item.id}-${item.dataRegistro}`}>
+                                <strong>{rotuloStatus(item.status)}</strong>
+                                <p>{item.observacao}</p>
+                                <small>{dataHora(item.dataRegistro)}</small>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+            )}
 
-                        <div className="historico-execucao">
-                            <h2>Histórico</h2>
-                            {execucao.historico.map((item) => (
-                                <article key={`${item.id}-${item.dataRegistro}`}>
-                                    <strong>{rotuloStatus(item.status)}</strong>
-                                    <p>{item.observacao}</p>
-                                    <small>{dataHora(item.dataRegistro)}</small>
-                                </article>
+            {clienteDaSessao && !consultando && execucao?.status === 'Concluida' && !avaliacao && (
+                <form className="formulario-avaliacao" onSubmit={avaliar}>
+                    <h2>Avaliar serviço</h2>
+                    <label>
+                        Nota
+                        <select value={nota} onChange={(e) => setNota(Number(e.target.value))}>
+                            {[1, 2, 3, 4, 5].map((valor) => (
+                                <option key={valor} value={valor}>{valor} estrela{valor > 1 ? 's' : ''}</option>
                             ))}
-                        </div>
-                    </div>
-                )}
+                        </select>
+                    </label>
+                    <label>
+                        Comentário
+                        <textarea maxLength={1000} value={comentario}
+                            onChange={(e) => setComentario(e.target.value)} />
+                    </label>
+                    <button className="botao-principal" disabled={carregando}>
+                        Enviar avaliação
+                    </button>
+                </form>
+            )}
 
-                {execucao?.status === 'Concluida' && !avaliacao && (
-                    <form className="formulario-avaliacao" onSubmit={avaliar}>
-                        <h2>Avaliar serviço</h2>
-                        <label>
-                            ID do cliente
-                            <input type="number" min="1" value={clienteId}
-                                onChange={(e) => setClienteId(Number(e.target.value))} />
-                        </label>
-                        <label>
-                            Nota
-                            <select value={nota} onChange={(e) => setNota(Number(e.target.value))}>
-                                {[1, 2, 3, 4, 5].map((valor) => (
-                                    <option key={valor} value={valor}>{valor} estrela{valor > 1 ? 's' : ''}</option>
-                                ))}
-                            </select>
-                        </label>
-                        <label>
-                            Comentário
-                            <textarea maxLength={1000} value={comentario}
-                                onChange={(e) => setComentario(e.target.value)} />
-                        </label>
-                        <button className="botao-principal" disabled={carregando}>
-                            Enviar avaliação
-                        </button>
-                    </form>
-                )}
-
-                {avaliacao && (
-                    <div className="avaliacao-registrada">
-                        <h2>Avaliação registrada</h2>
-                        <p className="estrelas-avaliacao">{'★'.repeat(avaliacao.nota)}</p>
-                        <p>{avaliacao.comentario || 'Sem comentário.'}</p>
-                        <small>{dataHora(avaliacao.dataAvaliacao)}</small>
-                    </div>
-                )}
-            </section>
-        </main>
+            {avaliacao && (
+                <div className="avaliacao-registrada">
+                    <h2>Avaliação registrada</h2>
+                    <p className="estrelas-avaliacao">{'★'.repeat(avaliacao.nota)}</p>
+                    <p>{avaliacao.comentario || 'Sem comentário.'}</p>
+                    <small>{dataHora(avaliacao.dataAvaliacao)}</small>
+                </div>
+            )}
+        </section>
     )
 }

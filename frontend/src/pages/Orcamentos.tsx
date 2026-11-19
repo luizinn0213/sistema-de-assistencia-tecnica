@@ -1,10 +1,14 @@
 import {
+    useEffect,
     useState,
     type FormEvent
 } from 'react'
+import { SeletorAtendimento } from '../components/SeletorAtendimento'
+import type { Atendimento } from '../types/Atendimento'
 import { Toast } from '../components/Toast'
 import {
     adicionarItemOrcamento,
+    alterarItemOrcamento,
     aprovarOrcamento,
     cancelarOrcamento,
     criarOrcamento,
@@ -14,14 +18,41 @@ import {
     removerItemOrcamento
 } from '../services/orcamentosApi'
 import type {
+    ItemOrcamento,
+    ItemOrcamentoDados,
     Orcamento
 } from '../types/DiagnosticoOrcamento'
 
 type TipoToast = 'sucesso' | 'erro'
 
-export function Orcamentos() {
-    const [diagnosticoId, setDiagnosticoId] =
-        useState('')
+export function Orcamentos({ idInicial, aoAcompanhar }: { idInicial?: number; aoAcompanhar: (id: number) => void }) {
+    return (
+        <main className="pagina-equipamentos">
+            <div className="cabecalho-formulario">
+                <h1>Orçamento</h1>
+                <p>Prepare ou acompanhe a proposta do atendimento.</p>
+            </div>
+            <SeletorAtendimento etapa="orcamento" idInicial={idInicial}>
+                {(atendimento, perfil) => (
+                    <OrcamentoAtendimento
+                        key={atendimento.id}
+                        atendimento={atendimento}
+                        tecnico={perfil === 'Tecnico'}
+                        aoAcompanhar={() => aoAcompanhar(atendimento.id)}
+                    />
+                )}
+            </SeletorAtendimento>
+        </main>
+    )
+}
+
+function OrcamentoAtendimento({ atendimento, tecnico, aoAcompanhar }: {
+    atendimento: Atendimento
+    tecnico: boolean
+    aoAcompanhar: () => void
+}) {
+    const { diagnosticoId, orcamentoId } = atendimento
+    const [itemEmEdicao, setItemEmEdicao] = useState<number>()
 
     const [orcamento, setOrcamento] =
         useState<Orcamento | null>(null)
@@ -42,7 +73,7 @@ export function Orcamentos() {
         useState('')
 
     const [carregando, setCarregando] =
-        useState(false)
+        useState(Boolean(orcamentoId))
 
     const [mensagem, setMensagem] =
         useState('')
@@ -51,7 +82,7 @@ export function Orcamentos() {
         useState<TipoToast>('sucesso')
 
     const emElaboracao =
-        orcamento?.status === 'EmElaboracao'
+        tecnico && orcamento?.status === 'EmElaboracao'
 
     const enviado =
         orcamento?.status === 'Enviado'
@@ -62,21 +93,6 @@ export function Orcamentos() {
     ) {
         setMensagem(texto)
         setTipoMensagem(tipoToast)
-    }
-
-    function obterDiagnosticoId(): number | null {
-        const id = Number(diagnosticoId)
-
-        if (!Number.isInteger(id) || id <= 0) {
-            mostrarMensagem(
-                'Informe um ID de diagnóstico válido.',
-                'erro'
-            )
-
-            return null
-        }
-
-        return id
     }
 
     function tratarErro(
@@ -91,53 +107,32 @@ export function Orcamentos() {
         )
     }
 
-    async function buscar(
-        evento: FormEvent
-    ) {
-        evento.preventDefault()
+    useEffect(() => {
+        if (!diagnosticoId || !orcamentoId) return
+        let ativo = true
 
-        const id = obterDiagnosticoId()
+        obterOrcamentoPorDiagnostico(diagnosticoId).then(dados => {
+            if (ativo) setOrcamento(dados)
+        }).catch((erro: unknown) => {
+            if (ativo) {
+                setMensagem(erro instanceof Error ? erro.message : 'Não foi possível carregar o orçamento.')
+                setTipoMensagem('erro')
+            }
+        }).finally(() => {
+            if (ativo) setCarregando(false)
+        })
 
-        if (id === null) {
-            return
-        }
-
-        setCarregando(true)
-
-        try {
-            const dados =
-                await obterOrcamentoPorDiagnostico(id)
-
-            setOrcamento(dados)
-
-            mostrarMensagem(
-                'Orçamento encontrado.',
-                'sucesso'
-            )
-        } catch (erro) {
-            setOrcamento(null)
-
-            tratarErro(
-                erro,
-                'Não foi possível buscar o orçamento.'
-            )
-        } finally {
-            setCarregando(false)
-        }
-    }
+        return () => { ativo = false }
+    }, [diagnosticoId, orcamentoId])
 
     async function criar() {
-        const id = obterDiagnosticoId()
-
-        if (id === null) {
-            return
-        }
+        if (!tecnico || !diagnosticoId) return
 
         setCarregando(true)
 
         try {
             const dados =
-                await criarOrcamento(id)
+                await criarOrcamento(diagnosticoId)
 
             setOrcamento(dados)
 
@@ -155,7 +150,23 @@ export function Orcamentos() {
         }
     }
 
-    async function adicionarItem(
+    function editarItem(item: ItemOrcamento) {
+        setItemEmEdicao(item.id)
+        setDescricao(item.descricao)
+        setTipo(item.tipo === 'Peca' ? '1' : '2')
+        setQuantidade(String(item.quantidade))
+        setValorUnitario(String(item.valorUnitario))
+    }
+
+    function limparItem() {
+        setItemEmEdicao(undefined)
+        setDescricao('')
+        setTipo('1')
+        setQuantidade('1')
+        setValorUnitario('')
+    }
+
+    async function salvarItem(
         evento: FormEvent
     ) {
         evento.preventDefault()
@@ -206,31 +217,22 @@ export function Orcamentos() {
         setCarregando(true)
 
         try {
-            const dados =
-                await adicionarItemOrcamento(
-                    orcamento.id,
-                    {
-                        descricao: descricao.trim(),
-                        tipo: tipo === '1' ? 1 : 2,
-                        quantidade: quantidadeNumero,
-                        valorUnitario: valorNumero
-                    }
-                )
+            const item: ItemOrcamentoDados = {
+                descricao: descricao.trim(),
+                tipo: tipo === '1' ? 1 : 2,
+                quantidade: quantidadeNumero,
+                valorUnitario: valorNumero
+            }
+
+            const dados = itemEmEdicao
+                ? await alterarItemOrcamento(orcamento.id, itemEmEdicao, item)
+                : await adicionarItemOrcamento(orcamento.id, item)
 
             setOrcamento(dados)
-            setDescricao('')
-            setQuantidade('1')
-            setValorUnitario('')
-
-            mostrarMensagem(
-                'Item adicionado.',
-                'sucesso'
-            )
+            mostrarMensagem(itemEmEdicao ? 'Item atualizado.' : 'Item adicionado.', 'sucesso')
+            limparItem()
         } catch (erro) {
-            tratarErro(
-                erro,
-                'Não foi possível adicionar o item.'
-            )
+            tratarErro(erro, 'Não foi possível salvar o item.')
         } finally {
             setCarregando(false)
         }
@@ -261,6 +263,7 @@ export function Orcamentos() {
                 )
 
             setOrcamento(dados)
+            if (itemId === itemEmEdicao) limparItem()
 
             mostrarMensagem(
                 'Item removido.',
@@ -401,7 +404,7 @@ export function Orcamentos() {
     }
 
     return (
-        <main className="pagina-equipamentos">
+        <>
             {mensagem && (
                 <Toast
                     mensagem={mensagem}
@@ -410,58 +413,13 @@ export function Orcamentos() {
                 />
             )}
 
-            <div className="cabecalho-formulario">
-                <span className="subtitulo-formulario">
-                    PROPOSTA DE SERVIÇO
-                </span>
-
-                <h1>Orçamento</h1>
-
-                <p>
-                    Adicione peças e serviços e envie
-                    a proposta para aprovação.
-                </p>
-            </div>
-
             <section className="painel-equipamentos">
-                <form
-                    className="formulario-equipamento"
-                    onSubmit={buscar}
-                >
-                    <label>
-                        ID do diagnóstico
-                        <input
-                            type="number"
-                            min="1"
-                            value={diagnosticoId}
-                            onChange={(evento) =>
-                                setDiagnosticoId(
-                                    evento.target.value
-                                )
-                            }
-                            placeholder="Ex.: 1"
-                        />
-                    </label>
-
-                    <div className="acoes-equipamento">
-                        <button
-                            className="botao-secundario"
-                            type="submit"
-                            disabled={carregando}
-                        >
-                            Buscar orçamento
-                        </button>
-
-                        <button
-                            className="botao-principal"
-                            type="button"
-                            disabled={carregando}
-                            onClick={criar}
-                        >
-                            Criar orçamento
-                        </button>
-                    </div>
-                </form>
+                {orcamentoId && !orcamento && carregando && <p>Carregando orçamento...</p>}
+                {tecnico && !orcamentoId && !orcamento && (
+                    <button className="botao-principal" type="button" disabled={carregando} onClick={criar}>
+                        Criar orçamento
+                    </button>
+                )}
 
                 {orcamento && (
                     <>
@@ -471,7 +429,7 @@ export function Orcamentos() {
                             </span>
 
                             <h2>
-                                Orçamento #{orcamento.id}
+                                Proposta do atendimento
                             </h2>
 
                             <dl>
@@ -480,11 +438,7 @@ export function Orcamentos() {
 
                                 <dt>Solicitação</dt>
                                 <dd>
-                                    {orcamento
-                                        .solicitacaoNumero ||
-                                        orcamento
-                                            .solicitacaoId ||
-                                        '-'}
+                                    {atendimento.numero}
                                 </dd>
 
                                 <dt>Criado em</dt>
@@ -508,9 +462,9 @@ export function Orcamentos() {
                         {emElaboracao && (
                             <form
                                 className="formulario-equipamento"
-                                onSubmit={adicionarItem}
+                                onSubmit={salvarItem}
                             >
-                                <h2>Adicionar item</h2>
+                                <h2>{itemEmEdicao ? 'Editar item' : 'Adicionar item'}</h2>
 
                                 <label>
                                     Descrição
@@ -586,8 +540,13 @@ export function Orcamentos() {
                                     type="submit"
                                     disabled={carregando}
                                 >
-                                    Adicionar item
+                                    {itemEmEdicao ? 'Salvar item' : 'Adicionar item'}
                                 </button>
+                                {itemEmEdicao && (
+                                    <button className="botao-secundario" type="button" onClick={limparItem}>
+                                        Cancelar edição
+                                    </button>
+                                )}
                             </form>
                         )}
 
@@ -639,20 +598,30 @@ export function Orcamentos() {
                                             </div>
 
                                             {emElaboracao && (
-                                                <button
-                                                    className="acao-perigosa"
-                                                    type="button"
-                                                    disabled={
-                                                        carregando
-                                                    }
-                                                    onClick={() =>
-                                                        removerItem(
-                                                            item.id
-                                                        )
-                                                    }
-                                                >
-                                                    Remover
-                                                </button>
+                                                <div className="acoes-equipamento">
+                                                    <button
+                                                        className="botao-secundario"
+                                                        type="button"
+                                                        disabled={carregando}
+                                                        onClick={() => editarItem(item)}
+                                                    >
+                                                        Editar item
+                                                    </button>
+                                                    <button
+                                                        className="acao-perigosa"
+                                                        type="button"
+                                                        disabled={
+                                                            carregando
+                                                        }
+                                                        onClick={() =>
+                                                            removerItem(
+                                                                item.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Remover
+                                                    </button>
+                                                </div>
                                             )}
                                         </article>
                                     )
@@ -690,7 +659,7 @@ export function Orcamentos() {
                                         </button>
                                     )}
 
-                                    {enviado && (
+                                    {enviado && !tecnico && (
                                         <>
                                             <button
                                                 className="botao-principal"
@@ -720,16 +689,24 @@ export function Orcamentos() {
                                         </>
                                     )}
 
-                                    <button
-                                        className="botao-secundario"
-                                        type="button"
-                                        disabled={carregando}
-                                        onClick={cancelar}
-                                    >
-                                        Cancelar orçamento
-                                    </button>
+                                    {tecnico && (
+                                        <button
+                                            className="botao-secundario"
+                                            type="button"
+                                            disabled={carregando}
+                                            onClick={cancelar}
+                                        >
+                                            Cancelar orçamento
+                                        </button>
+                                    )}
                                 </div>
                             </section>
+                        )}
+
+                        {orcamento.status === 'Aprovado' && (
+                            <button className="botao-principal" type="button" onClick={aoAcompanhar}>
+                                Acompanhar execução
+                            </button>
                         )}
 
                         <section className="painel-historico">
@@ -762,6 +739,6 @@ export function Orcamentos() {
                     </>
                 )}
             </section>
-        </main>
+        </>
     )
 }

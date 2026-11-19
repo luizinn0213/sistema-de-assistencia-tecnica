@@ -1,4 +1,5 @@
 using Assistencia.Api.Dtos;
+using Assistencia.Api.Enums;
 using Assistencia.Api.Models;
 using Assistencia.Api.Repositories.Contracts;
 using Assistencia.Api.Services.Contracts;
@@ -51,6 +52,7 @@ public class OrcamentoService : IOrcamentoService
             ?? throw new KeyNotFoundException(
                 "Diagnóstico não encontrado.");
 
+        diagnostico.Solicitacao?.ValidarAtendimentoAtivo();
         var orcamento = new Orcamento(diagnostico);
 
         await _orcamentoRepository.AdicionarAsync(
@@ -111,6 +113,7 @@ public class OrcamentoService : IOrcamentoService
             orcamentoId,
             cancellationToken);
 
+        orcamento.Diagnostico?.Solicitacao?.ValidarAtendimentoAtivo();
         orcamento.AdicionarItem(
             dados.Descricao,
             dados.Tipo,
@@ -136,6 +139,7 @@ public class OrcamentoService : IOrcamentoService
 
         var item = ObterItem(orcamento, itemId);
 
+        orcamento.Diagnostico?.Solicitacao?.ValidarAtendimentoAtivo();
         orcamento.AlterarItem(
             item,
             dados.Descricao,
@@ -159,6 +163,7 @@ public class OrcamentoService : IOrcamentoService
 
         var item = ObterItem(orcamento, itemId);
 
+        orcamento.Diagnostico?.Solicitacao?.ValidarAtendimentoAtivo();
         orcamento.RemoverItem(item);
 
         await SalvarAsync(cancellationToken);
@@ -175,6 +180,8 @@ public class OrcamentoService : IOrcamentoService
             cancellationToken);
 
         orcamento.Enviar();
+        orcamento.Diagnostico?.Solicitacao?.RegistrarEtapaDoAtendimento(
+            StatusSolicitacao.OrcamentoEnviado);
 
         await SalvarAsync(cancellationToken);
 
@@ -193,6 +200,8 @@ public class OrcamentoService : IOrcamentoService
             cancellationToken);
 
         orcamento.Aprovar(dados.Observacao);
+        orcamento.Diagnostico?.Solicitacao?.RegistrarEtapaDoAtendimento(
+            StatusSolicitacao.OrcamentoAprovado);
 
         await SalvarAsync(cancellationToken);
 
@@ -210,6 +219,7 @@ public class OrcamentoService : IOrcamentoService
             id,
             cancellationToken);
 
+        orcamento.Diagnostico?.Solicitacao?.ValidarAtendimentoAtivo();
         orcamento.Rejeitar(dados.Observacao);
 
         await SalvarAsync(cancellationToken);

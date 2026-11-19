@@ -93,11 +93,6 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AdicionarAutenticacaoJwt(builder.Configuration);
-builder.Services.AddScoped<IMatchingRepository, MatchingRepository>();
-builder.Services.AddScoped<IMatchingService, MatchingService>();
-builder.Services.AddScoped<ICriterioPontuacaoMatching, CriterioEspecialidade>();
-builder.Services.AddScoped<ICriterioPontuacaoMatching, CriterioExperiencia>();
-builder.Services.AddScoped<ICriterioPontuacaoMatching, CriterioLocalizacao>();
 
 var app = builder.Build();
 

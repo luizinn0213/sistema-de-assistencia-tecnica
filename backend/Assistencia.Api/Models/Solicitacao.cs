@@ -101,6 +101,26 @@ public class Solicitacao
         RegistrarAlteracaoStatus(novoStatus);
     }
 
+    internal void ValidarAtendimentoAtivo()
+    {
+        if (Status == StatusSolicitacao.Cancelada)
+        {
+            throw new InvalidOperationException("Esta solicitação foi cancelada.");
+        }
+    }
+
+    internal void RegistrarEtapaDoAtendimento(StatusSolicitacao etapa)
+    {
+        ValidarAtendimentoAtivo();
+
+        // Um registro de etapa confirma as anteriores em atendimentos criados
+        // antes de o ciclo da solicitação ser integrado.
+        while (Status < etapa)
+        {
+            AlterarStatus(Status + 1);
+        }
+    }
+
     public void Cancelar()
     {
         if (Status == StatusSolicitacao.EmExecucao ||

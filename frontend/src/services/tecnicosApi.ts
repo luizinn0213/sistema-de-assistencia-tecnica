@@ -20,8 +20,8 @@ export async function listarTecnicos(): Promise<Tecnico[]> {
 
 export async function cadastrarTecnico(
   dados: CriarTecnico
-): Promise<Tecnico> {
-  const resposta = await fetch(API_URL, {
+): Promise<Pick<Tecnico, 'id' | 'usuarioId' | 'nomeExibicao'>> {
+  const resposta = await fetch(`${API_URL}/cadastro`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -30,10 +30,12 @@ export async function cadastrarTecnico(
   })
 
   if (!resposta.ok) {
-    const mensagem = await resposta.text()
+    const dados = await resposta.json().catch(() => null)
+    const erros: string[][] = Object.values(dados?.errors ?? {})
 
     throw new Error(
-      mensagem || 'Não foi possível cadastrar o técnico.'
+      dados?.erro || erros.flat().join(' ') ||
+      'Não foi possível cadastrar o técnico.'
     )
   }
 

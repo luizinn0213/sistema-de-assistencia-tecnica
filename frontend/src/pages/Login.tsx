@@ -4,7 +4,7 @@ import { Toast } from '../components/Toast'
 import { realizarLogin } from '../services/authApi'
 import type { SessaoUsuario } from '../types/Sessao'
 
-export function Login() {
+export function Login({ aoEntrar }: { aoEntrar: (sessao: SessaoUsuario) => void }) {
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState('')
     const [usuario, setUsuario] =
@@ -30,6 +30,7 @@ export function Login() {
             })
 
             setUsuario(sessao)
+            aoEntrar(sessao)
             setSenha('')
             setMensagem('Login realizado com sucesso.')
         } catch (erroRecebido) {
@@ -67,17 +68,9 @@ export function Login() {
                         <h1>Olá, {usuario.nome}!</h1>
 
                         <p>
-                            Você entrou como {usuario.tipo}.
+                            Você entrou como {usuario.tipo === 'Tecnico' ? 'técnico' : usuario.tipo.toLowerCase()}.
                         </p>
 
-                        {usuario.clienteId && (
-                            <p>
-                                Perfil de cliente número{' '}
-                                <strong>
-                                    {usuario.clienteId}
-                                </strong>
-                            </p>
-                        )}
                     </section>
                 </main>
             </>

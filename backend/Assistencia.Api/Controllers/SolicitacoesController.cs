@@ -1,5 +1,6 @@
 using Assistencia.Api.Data;
 using Assistencia.Api.Dtos;
+using Assistencia.Api.Enums;
 using Assistencia.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -178,6 +179,13 @@ public class SolicitacoesController : ControllerBase
         {
             return NotFound(
                 new { erro = "Solicitação não encontrada." });
+        }
+
+        if (await _context.ExecucoesServicos.AnyAsync(e =>
+            e.Orcamento!.Diagnostico!.SolicitacaoId == id &&
+            e.Status != StatusExecucaoServico.AguardandoInicio))
+        {
+            return BadRequest(new { erro = "Não é possível cancelar esta solicitação." });
         }
 
         try

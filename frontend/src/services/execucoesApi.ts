@@ -42,10 +42,9 @@ export async function criarExecucao(
 
 export async function obterExecucaoPorOrcamento(
     orcamentoId: number
-): Promise<ExecucaoServico> {
-    return processar(await fetch(
-        `${EXECUCOES_URL}/orcamento/${orcamentoId}`
-    ))
+): Promise<ExecucaoServico | null> {
+    const resposta = await fetch(`${EXECUCOES_URL}/orcamento/${orcamentoId}`)
+    return resposta.status === 404 ? null : processar(resposta)
 }
 
 export async function iniciarExecucao(
@@ -82,8 +81,7 @@ export async function criarAvaliacao(
 
 export async function obterAvaliacaoPorExecucao(
     execucaoServicoId: number
-): Promise<Avaliacao> {
-    return processar(await fetch(
-        `${AVALIACOES_URL}/execucao/${execucaoServicoId}`
-    ))
+): Promise<Avaliacao | null> {
+    const resposta = await fetch(`${AVALIACOES_URL}/execucao/${execucaoServicoId}`)
+    return resposta.status === 404 ? null : processar(resposta)
 }
